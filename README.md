@@ -18,6 +18,7 @@ Watch this video for a live demo:
 
 - Install the latest version of Python 3: [https://www.python.org/downloads/](https://www.python.org/downloads/)
 - Open the terminal and run the following commands to install the required ByBit HTTP and WebSocket packages:
+  * `pip install pybit`
   * `pip install bybit`
   * `python BybitWebsocket/setup.py install`
 
