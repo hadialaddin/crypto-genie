@@ -12,7 +12,7 @@ NOTE: Updating the Leverage won't automatically update your stop loss for the re
 
 ## Demo
 
-Watch this video for a live demo: 
+Watch this video for a live demo: [https://youtu.be/yhkY9F-Py1o](https://youtu.be/yhkY9F-Py1o)
 
 ## Installation
 
