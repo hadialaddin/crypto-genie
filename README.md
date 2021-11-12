@@ -20,10 +20,10 @@ Watch this video for a live demo:
   * `pip install bybit`
   * `python BybitWebsocket/setup.py install`
 
-NOTE: the WebSocket package used is slightly modified to pypass the Authentication error caused by having your server out of sync with the ByBit server time.
+NOTE: the WebSocket package used is slightly modified from the original (https://github.com/bybit-exchange/api-connectors) to bypass the Authentication error caused by having your server out of sync with the ByBit server time.
 
 - Run the monitor bot using the command:
-  * python monitor.py
+  * `python monitor.py`
 
 You can run this Python script as a background process using **pm2** to auto reload if it crashes. Install pm2 ([https://pm2.keymetrics.io/docs/usage/quick-start/](https://pm2.keymetrics.io/docs/usage/quick-start/)) then:
 To start the pm2 monitor process: `pm2 start monitor.py --interpreter=python`
