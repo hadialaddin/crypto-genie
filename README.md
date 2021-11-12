@@ -17,10 +17,8 @@ Watch this video for a live demo:
 ## Installation
 
 - Install the latest version of Python 3: [https://www.python.org/downloads/](https://www.python.org/downloads/)
-- Open the terminal and run the following commands to install the required ByBit HTTP and WebSocket packages:
+- Open the terminal and run the following command to install the required ByBit's PyBit package:
   * `pip install pybit`
-  * `pip install bybit`
-  * `python BybitWebsocket/setup.py install`
 
 NOTE: the WebSocket package used is slightly modified from the original (https://github.com/bybit-exchange/api-connectors) to bypass the Authentication error caused by having your server out of sync with the ByBit server time.
 
