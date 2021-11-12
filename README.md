@@ -6,7 +6,7 @@ Social Media: @hadialaddin
 
 An automated Risk Management Monitoring Bot for ByBit cryptocurrencies exchange that forces all open positions to adhere to a specific risk ratio, defined per asset. It supports both Mainnet and Testnet.
 
-Simply, it automatically adds/modified a _**Stop Loss**_ for any position created or modified, making sure that the stop loss (after leverage, in case of using Margin) does not exceed a specific limit.
+Simply, it automatically adds/modified a _**Stop Loss**_ for any position created or modified, making sure that the stop loss (after leverage, in case of using Margin) does not exceed a specific limit. For now, it supports _**TP/SL on Entire Position**_ mode, not _**TP/SL on Selected Position**_, and for all pairs.
 
 Use at your own risk.
 
