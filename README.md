@@ -33,3 +33,7 @@ _NOTE: In case your server has an older version of Python, you can use "python3"
 ## Configuration
 
 Edit the constants defined at the beginning of the monitor.py file to set your ByBit API credentials, as well as specific risk ratios for any specific asset. By default, all assets will have the defined `stop_loss_cap_ratio`.
+
+## Contribute
+
+I will do my best to evolve this project and add more features for Stop Loss and Take Profits to ease implementing trading strategies. If you have any ideas or feature suggestions, please contact me or go to the "Issues" tab above to create ones.
