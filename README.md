@@ -20,8 +20,6 @@ Watch this video for a live demo:
 - Open the terminal and run the following command to install the required ByBit's PyBit package:
   * `pip install pybit`
 
-NOTE: the WebSocket package used is slightly modified from the original (https://github.com/bybit-exchange/api-connectors) to bypass the Authentication error caused by having your server out of sync with the ByBit server time.
-
 - Run the monitor bot using the command:
   * `python monitor.py`
 
