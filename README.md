@@ -1,4 +1,5 @@
 Author: Hadi Aladdin ([https://linktr.ee/hadialaddin](https://linktr.ee/hadialaddin))
+
 Social Media: @hadialaddin
 
 # ByBit Risk Monitor
