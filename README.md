@@ -2,7 +2,7 @@ Author: Hadi Aladdin ([https://linktr.ee/hadialaddin](https://linktr.ee/hadialad
 
 Social Media: @hadialaddin
 
-# ByBit Risk Monitor
+# ByBit Risk Monitor Bot
 
 An automated Risk Management Monitoring Bot for ByBit cryptocurrencies exchange that forces all open positions to adhere to a specific risk ratio, defined per asset. It supports **USDT Perpetual**, **Inverse Perpetual** and **Inverse Futures** all on _**Mainnet**_ and _**Testnet**_ but only for _**One-Way Mode**_ not _**Hedge Mode**_.
 
