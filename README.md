@@ -8,7 +8,7 @@ An automated Risk Management Monitoring Bot for ByBit cryptocurrencies exchange 
 
 Simply, it automatically adds/modified a _**Stop Loss**_ for any position created or modified, making sure that the stop loss (after leverage, in case of using Margin) does not exceed a specific limit. For now, it supports _**TP/SL on Entire Position**_ mode, not _**TP/SL on Selected Position**_, and for all pairs.
 
-Use at your own risk.
+NOTE: Updating the Leverage won't automatically update your stop loss for the respective position. You would need to change it upon updating so that it auto adjusts. Use at your own risk.
 
 ## Demo
 
