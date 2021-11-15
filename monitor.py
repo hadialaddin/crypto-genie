@@ -16,8 +16,7 @@ enforce_stop_loss_range = True # Enforce Stop Loss Range feature switch (True/Fa
 default_stop_loss_cap_ratio = 10.0 # Maximum Stop Loss % allowed (ratio of price difference, after leverage)
 override_stop_loss_cap_ratio = { # Use this to set custom Stop Loss % for specific asset pairs (override the default), you can add more pairs as you desire by adding a comma at the end and a new symbol
   "BTCUSDT": 5.0,
-  "ETHUSDT": 5.0,
-  "SHIB1000USDT": 1.0
+  "ETHUSDT": 5.0
 }
 
 #################################################################################################################
