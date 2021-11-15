@@ -32,7 +32,7 @@ _NOTE: In case your server has an older version of Python, you can use "python3"
 
 ## Configuration
 
-Edit the constants defined at the beginning of the monitor.py file to set your ByBit API credentials, as well as specific risk ratios for any specific asset. By default, all assets will have the defined `stop_loss_cap_ratio`.
+Edit the constants defined at the beginning of the monitor.py file to set your ByBit API credentials, as well as specific risk ratios for any specific asset. By default, all assets will have the defined constants with the prefix `default_`.
 
 ## Contribute
 
