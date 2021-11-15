@@ -29,12 +29,12 @@ Watch this video for a live demo: [https://youtu.be/yhkY9F-Py1o](https://youtu.b
 - Open the terminal and run the following command to install the required ByBit's PyBit package:
   * `pip install pybit`
 
-- Run the monitor bot using the command:
-  * `python monitor.py`
+- Run the crypto-genie bot using the command:
+  * `python crypto-genie.py`
 
 You can run this Python script as a background process using **pm2** to auto reload if it crashes. Install pm2 ([https://pm2.keymetrics.io/docs/usage/quick-start/](https://pm2.keymetrics.io/docs/usage/quick-start/)) then:
-To start the pm2 monitor process: `pm2 start monitor.py --interpreter=python`
-To stop the pm2 monitor process: `pm2 stop monitor`
+To start the pm2 crypto-genie process: `pm2 start crypto-genie.py --interpreter=python`
+To stop the pm2 crypto-genie process: `pm2 stop crypto-genie`
 
 _NOTE: In case your server has an older version of Python, you can use "python3" to instead of "python" for all the commands above._
 
@@ -48,7 +48,7 @@ _NOTE: In case your server has an older version of Python, you can use "python3"
 
 ## Configuration
 
-Edit the constants defined at the beginning of the monitor.py file to set your Exchange API credentials, as well as specific risk ratios for any specific asset. By default, all assets will have the defined constants with the prefix `default_`.
+Edit the constants defined at the beginning of the crypto-genie.py file to set your Exchange API credentials, as well as specific risk ratios for any specific asset. By default, all assets will have the defined constants with the prefix `default_`.
 
 ## Contribute
 
