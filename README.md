@@ -2,13 +2,22 @@ Author: Hadi Aladdin ([https://linktr.ee/hadialaddin](https://linktr.ee/hadialad
 
 Social Media: @hadialaddin
 
-# ByBit Risk Management Monitor Bot
+# Crypto Genie
 
-An automated Risk Management Monitor Bot for ByBit cryptocurrencies exchange that forces all open positions to adhere to a specific risk ratio, defined per asset. It supports **USDT Perpetual**, **Inverse Perpetual** and **Inverse Futures** all on _**Mainnet**_ and _**Testnet**_.
+Suite of Automated Monitors (Bots) to empower Day Traders to stick to Trade Plans — Risk:Reward ratios.
 
-Simply, it automatically adds/modifies a _**Stop Loss**_ for any position created or modified, making sure that the stop loss (after leverage, in case of using Margin) does not exceed a specific limit. It supports _**TP/SL on Entire Position**_ and _**TP/SL on Selected Position**_ modes, as well as _**One-Way Mode**_. Note that _**Hedge Mode**_ is only supported on the **USDT Perpetuals** for now due to ByBit's API limitations, so _**Hedge Mode**_ is not supported for **Inverse Perpetuals** and **Futures Perpetuals**, yet.
+## Features
+
+### Risk Management Monitor
+Automated Risk Management Monitor for cryptocurrencies exchanges that forces all open positions to adhere to specific risk ratios, defined per asset. Simply, it automatically adds/modifies _**Stop Loss(s)**_ for any position created or modified, making sure that the maximum Stop Loss (after leverage, in case of using Margin) does not exceed a specific ratio.
 
 NOTE: Updating the Leverage won't automatically update your stop loss for the respective position. You would need to change it upon updating so that it auto adjusts. Use at your own risk.
+
+### Take Profits Monitor
+Automated Take Profits Monitor that will ensure specific pre-defined quantities of the positions are taken at specific price levels, to avoid missing on potential gains that usually get lost if not taken.
+
+### Lock In Profits Monitor
+Automated Lock In Profits Monitor to ensure the Stop Loss moves from Loss to Breakeven or In-Profit to avoid incurring losses once a position satisfies the price level conditions.
 
 ## Demo
 
@@ -27,12 +36,19 @@ You can run this Python script as a background process using **pm2** to auto rel
 To start the pm2 monitor process: `pm2 start monitor.py --interpreter=python`
 To stop the pm2 monitor process: `pm2 stop monitor`
 
-
 _NOTE: In case your server has an older version of Python, you can use "python3" to instead of "python" for all the commands above._
+
+## Supported Exchanges
+
+- ByBit:
+    - Pairs supported: **USDT Perpetual**, **Inverse Perpetual** and **Inverse Futures**
+    - Networks supported: _**Mainnet**_ and _**Testnet**_
+    - TP/SL Modes supported: **TP/SL on Entire Position**_ and _**TP/SL on Selected Position**_
+    - Position Direction supported: _**One-Way Mode**_. Note that _**Hedge Mode**_ is only supported on the **USDT Perpetuals** for now due to ByBit's API limitations, so _**Hedge Mode**_ is not supported for **Inverse Perpetuals** and **Futures Perpetuals**, yet.
 
 ## Configuration
 
-Edit the constants defined at the beginning of the monitor.py file to set your ByBit API credentials, as well as specific risk ratios for any specific asset. By default, all assets will have the defined constants with the prefix `default_`.
+Edit the constants defined at the beginning of the monitor.py file to set your Exchange API credentials, as well as specific risk ratios for any specific asset. By default, all assets will have the defined constants with the prefix `default_`.
 
 ## Contribute
 
