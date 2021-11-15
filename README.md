@@ -1,4 +1,4 @@
-Author: Hadi Aladdin ([https://linktr.ee/hadialaddin](https://linktr.ee/hadialaddin){:target="_blank" rel="noopener"})
+Author: Hadi Aladdin ([https://linktr.ee/hadialaddin](https://linktr.ee/hadialaddin))
 
 Social Media: @hadialaddin
 
