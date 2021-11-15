@@ -8,8 +8,8 @@ from datetime import datetime
 from pybit import HTTP, WebSocket
 
 ###### Configurations (EDIT)
-api_key = 'R2RZqlWU2N5tDoIYAz'
-api_secret = 'NrkyuSYWTeLlNYjREf74obOTBmK72CAAsbfu'
+api_key = 'TYPE BYBIT API KEY HERE'
+api_secret = 'TYPE BYBIT API SECRET HERE'
 Test = True # Set to False to use the Mainnet, or False to use the Testnet
 
 enforce_stop_loss_range = True # Enforce Stop Loss Range feature switch (True/False)
