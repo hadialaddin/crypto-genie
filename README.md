@@ -5,12 +5,14 @@ Social Media: @hadialaddin
 # Crypto Genie
 
 Suite of Automated Monitors (Bots) to empower Day Traders and enable them to stick to their Trade Plans — Risk:Reward ratios.
-Althoguh designed to automate most of the Risk:Reward aspects of day trading, this suite of tools acts as an assistant instead of auto-pilot. Always monitor positions and actions taken by these monitors. Use at your own risk!
+Althoguh designed to automate most of the Risk:Reward aspects of day trading, this suite of tools acts as an assistant instead of auto-pilot.
+
+Always verify any actions taken by these monitors, and manually manage your positions. Use at your own risk!
 
 ## Features
 
 ### Risk Management Monitor
-Automated Risk Management Monitor for cryptocurrencies exchanges that forces all open positions to adhere to specific risk ratios, defined per asset. Simply, it automatically adds/modifies _**Stop Loss(s)**_ for any position created or modified, making sure that the maximum Stop Loss (after leverage, in case of using Margin) does not exceed a specific ratio.
+Automated Risk Management Monitor for cryptocurrencies exchanges that forces all open positions to adhere to specific risk ratios, defined per asset. Simply, it automatically adds/modifies _**Stop Loss(s)**_ for any position created or modified, making sure that the maximum Stop Loss (after leverage, in case of using Margin) does not exceed a specific ratio. It also has an Emergency Enforced Market Stop Loss in case a position is open and the price already broke the allowed Stop Loss range.
 
 NOTE: Updating the Leverage won't automatically update your stop loss for the respective position. You would need to change it upon updating so that it auto adjusts.
 
