@@ -4,8 +4,6 @@ Social Media: @hadialaddin
 
 # Crypto Genie 🧞
 
-<img src="https://i.ibb.co/2F0w74H/Crypto-Genie-Logo.png" alt="drawing" width="200"/>
-
 Suite of Automated Monitors (Bots) to empower Day Traders and enable them to stick to their Trade Plans — Risk:Reward ratios.
 Althoguh designed to automate most of the Risk:Reward aspects of day trading, this suite of tools acts as an assistant instead of auto-pilot.
 
