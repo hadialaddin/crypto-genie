@@ -40,6 +40,8 @@ Automated Lock In Profits Monitor to ensure the Stop Loss moves from Loss to Bre
 - Run the crypto-genie bot using the command after navigating (using 'cd' command in terminal) to the directory where you installed the script at then type:
   * `python crypto-genie.py`
 
+NOTE: This thread could address some of your Pytjon installation issues: https://stackoverflow.com/questions/6587507/how-to-install-pip-with-python-3
+
 You can run this Python script as a background process using **pm2** to auto reload if it crashes. Install pm2 ([https://pm2.keymetrics.io/docs/usage/quick-start/](https://pm2.keymetrics.io/docs/usage/quick-start/)) then:
 To start the pm2 crypto-genie process: `pm2 start crypto-genie.py --interpreter=python3`
 To stop the pm2 crypto-genie process: `pm2 stop crypto-genie`
