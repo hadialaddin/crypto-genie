@@ -33,15 +33,15 @@ Automated Lock In Profits Monitor to ensure the Stop Loss moves from Loss to Bre
 ## Installation
 
 - Install the latest version of Python 3: [https://www.python.org/downloads/](https://www.python.org/downloads/)
-- Open the terminal (cmd on Windows) and run the following command to install the required ByBit's PyBit package:
+- Open the terminal (Search for 'cmd' on Windows and open it as Administrator) and run the following command to install the required ByBit's PyBit package:
   * `pip3 install pybit`
-     - If it didn't work, navigate to installed Python directory (C:\Users\%USERNAME%\AppData\Local\Programs\Python\Python36-32\Scripts)
+     - If it didn't work, execute this command instead: `C:\Users\%USERNAME%\AppData\Local\Programs\Python\Python36-32\Scripts\pip3 install pybit` where "Python36-32" should be replaced by the name of the folder pertaining to the installed Python version.
 
 - Run the crypto-genie bot using the command:
   * `python crypto-genie.py`
 
 You can run this Python script as a background process using **pm2** to auto reload if it crashes. Install pm2 ([https://pm2.keymetrics.io/docs/usage/quick-start/](https://pm2.keymetrics.io/docs/usage/quick-start/)) then:
-To start the pm2 crypto-genie process: `pm2 start crypto-genie.py --interpreter=python`
+To start the pm2 crypto-genie process: `pm2 start crypto-genie.py --interpreter=python3`
 To stop the pm2 crypto-genie process: `pm2 stop crypto-genie`
 
 _NOTE: In case your server has an older version of Python, you can use "python3" to instead of "python" for all the commands above._
