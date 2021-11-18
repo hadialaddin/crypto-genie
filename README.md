@@ -33,8 +33,9 @@ Automated Lock In Profits Monitor to ensure the Stop Loss moves from Loss to Bre
 ## Installation
 
 - Install the latest version of Python 3: [https://www.python.org/downloads/](https://www.python.org/downloads/)
-- Open the terminal and run the following command to install the required ByBit's PyBit package:
-  * `pip install pybit`
+- Open the terminal (cmd on Windows) and run the following command to install the required ByBit's PyBit package:
+  * `pip3 install pybit`
+     - If it didn't work, navigate to installed Python directory (C:\Users\%USERNAME%\AppData\Local\Programs\Python\Python36-32\Scripts)
 
 - Run the crypto-genie bot using the command:
   * `python crypto-genie.py`
