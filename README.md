@@ -37,7 +37,7 @@ Automated Lock In Profits Monitor to ensure the Stop Loss moves from Loss to Bre
   * `pip3 install pybit`
      - If it didn't work, execute this command instead: `C:\Users\%USERNAME%\AppData\Local\Programs\Python\Python36-32\Scripts\pip3 install pybit` where "Python36-32" should be replaced by the name of the folder pertaining to the installed Python version.
 
-- Run the crypto-genie bot using the command:
+- Run the crypto-genie bot using the command after navigating (using 'cd' command in terminal) to the directory where you installed the script at then type:
   * `python crypto-genie.py`
 
 You can run this Python script as a background process using **pm2** to auto reload if it crashes. Install pm2 ([https://pm2.keymetrics.io/docs/usage/quick-start/](https://pm2.keymetrics.io/docs/usage/quick-start/)) then:
