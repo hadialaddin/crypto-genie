@@ -32,12 +32,13 @@ Automated Lock In Profits Monitor to ensure the Stop Loss moves from Loss to Bre
 
 ## Installation
 
+- Download the codebase (go to "Download" then "Download ZIP") and extrat its contents.
 - Install the latest version of Python 3: [https://www.python.org/downloads/](https://www.python.org/downloads/)
 - Open the terminal (Search for 'cmd' on Windows and open it as Administrator) and run the following command to install the required ByBit's PyBit package:
   * `pip3 install pybit`
      - If it didn't work, execute this command instead: `C:\Users\%USERNAME%\AppData\Local\Programs\Python\Python36-32\Scripts\pip3 install pybit` where "Python36-32" should be replaced by the name of the folder pertaining to the installed Python version.
 
-- Run the crypto-genie bot using the command after navigating (using 'cd' command in terminal) to the directory where you installed the script at then type:
+- Run the crypto-genie bot using the command below after navigating (using this command in terminal: `cd C:\TYPE\PATH\TO\EXTRACTED\ZIP\FOLDER\HERE`) to the directory where you installed the script at then type:
   * `python crypto-genie.py`
 
 NOTE: This thread could address some of your Pytjon installation issues: https://stackoverflow.com/questions/6587507/how-to-install-pip-with-python-3
