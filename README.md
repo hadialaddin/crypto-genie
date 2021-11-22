@@ -38,8 +38,8 @@ Automated Lock In Profits Monitor to ensure the Stop Loss moves from Loss to Bre
   * `pip3 install pybit`
      - If it didn't work, execute this command instead: `C:\Users\%USERNAME%\AppData\Local\Programs\Python\Python36-32\Scripts\pip3 install pybit` where "Python36-32" should be replaced by the name of the folder pertaining to the installed Python version.
 
-- Run the crypto-genie bot using the command below after navigating (using this command in terminal: `cd C:\TYPE\PATH\TO\EXTRACTED\ZIP\FOLDER\HERE`) to the directory where you installed the script at then type:
-  * `python crypto-genie.py`
+- Run the crypto-genie bot using the command below in the terminal:
+  * `python C:\TYPE\PATH\TO\EXTRACTED\ZIP\FOLDER\HERE\crypto-genie.py`
 
 NOTE: This thread could address some of your Pytjon installation issues: https://stackoverflow.com/questions/6587507/how-to-install-pip-with-python-3
 
@@ -59,7 +59,7 @@ _NOTE: In case your server has an older version of Python, you can use "python3"
 
 ## Configuration
 
-Edit the constants defined at the beginning of the crypto-genie.py file to set your Exchange API credentials, as well as specific risk ratios for any specific asset. By default, all assets will have the defined constants with the prefix `default_`.
+Edit the constants defined at the beginning of the crypto-genie.py file (using Notepad or any file text editor) to set your Exchange API credentials, as well as specific risk ratios for any specific asset. By default, all assets will have the defined constants with the prefix `default_`.
 
 ## Contribute
 
