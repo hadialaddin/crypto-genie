@@ -33,7 +33,7 @@ Automated Lock In Profits Monitor to ensure the Stop Loss moves from Loss to Bre
 ## Installation
 
 - Download the codebase (go to "Download" then "Download ZIP") and extrat its contents.
-- Install the latest version of Python 3: [https://www.python.org/downloads/](https://www.python.org/downloads/)
+- Install the latest version of Python 3: [https://www.python.org/downloads/](https://www.python.org/downloads/) and make sure to check "Add Python to PATH" during installation. You might need to run the installed "Run as Administrator".
 - Open the terminal (Search for 'cmd' on Windows and open it as Administrator) and run the following command to install the required ByBit's PyBit package:
   * `pip3 install pybit`
      - If it didn't work, execute this command instead: `C:\Users\%USERNAME%\AppData\Local\Programs\Python\Python36-32\Scripts\pip3 install pybit` where "Python36-32" should be replaced by the name of the folder pertaining to the installed Python version.
