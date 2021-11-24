@@ -32,8 +32,9 @@ Automated Lock In Profits Monitor to ensure the Stop Loss moves from Loss to Bre
 
 ## Installation
 
-Start by creating an exchange API access and copy the Key and Secret. ByBit instructions: [https://help.bybit.com/hc/en-us/articles/360039749613-How-to-create-a-new-API-key-](https://help.bybit.com/hc/en-us/articles/360039749613-How-to-create-a-new-API-key-)
 Installation Video: [https://www.youtube.com/watch?v=djeJiog18Lg](https://www.youtube.com/watch?v=djeJiog18Lg)
+
+- Start by creating an exchange API access and copy the Key and Secret. ByBit instructions: [https://help.bybit.com/hc/en-us/articles/360039749613-How-to-create-a-new-API-key-](https://help.bybit.com/hc/en-us/articles/360039749613-How-to-create-a-new-API-key-)
 - Download the codebase (go to "Download" then "Download ZIP") and extrat its contents.
 - Install the latest version of Python 3: [https://www.python.org/downloads/](https://www.python.org/downloads/) and make sure to check "Add Python to PATH" during installation. You might need to run the installed "Run as Administrator".
 - Open the terminal (Search for 'cmd' on Windows and open it as Administrator) and run the following command to install the required ByBit's PyBit package:
