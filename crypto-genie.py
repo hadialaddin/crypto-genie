@@ -11,51 +11,59 @@ from pybit import HTTP, WebSocket
 api_key = 'TYPE BYBIT API KEY HERE'
 api_secret = 'TYPE BYBIT API SECRET HERE'
 Test = True # Set to False to use the Mainnet, or False to use the Testnet
+exchange_market_taker_fee = 0.075
+exchange_market_maker_fee = -0.025
 
-# Enforce Stop Loss Range feature switch (True/False)
-enforce_sl_range = True
+# Enforce Static Stop Loss at an exact ratio (not less not more) feature switch (True/False). Only exception is if position is in profit, it allows moving the SL to breakeven or profit.
+enforce_sl_static = True
 # Maximum Stop Loss % allowed (ratio of price difference, after leverage)
-default_sl_cap_ratio = 10.0
+default_sl_static_cap_ratio = 5.0
 # Use this to set custom Stop Loss % for specific asset pairs (override the default), you can add more pairs as you desire by adding a comma at the end and a new symbol
-override_sl_cap_ratio = {
-  "BTCUSDT": 1.0,
+override_sl_static_cap_ratio = {
+  "BTCUSDT": 5.0,
   "ETHUSDT": 5.0
 }
 
+# Enforce Stop Loss Range feature switch (True/False). NOTE: You should only activate either the Static Stop Loss feature or this one, not both, to avoid issues.
+enforce_sl_range = False
+# Maximum Stop Loss % allowed (ratio of price difference, after leverage)
+default_sl_range_cap_ratio = 15.0
+# Use this to set custom Stop Loss % for specific asset pairs (override the default), you can add more pairs as you desire by adding a comma at the end and a new symbol
+override_sl_range_cap_ratio = {
+  "BTCUSDT": 5.0,
+  "ETHUSDT": 10.0,
+  "SOLUSDT": 10.0,
+  "XRPUSDT": 10.0
+}
+
 # Enforce Take Profits feature switch (True/False)
-enforce_take_p = True
+enforce_tp = False
 # Default Initial TP levels (will be created only if no other TPs exist). Won't be enforced otherwise.
 # Structure is init_tp_price_ratio (after leverage) : init_tp_position_ratio WHERE init_tp_position_ratio < 100
 # NOTE: Order DOES NOT matter
-default_init_tp = {
-    25.0 : 50.0,
-    50.0 : 25.0,
-    100.0 : 12.5,
-    200.0 : 12.5
-}
-
-# Default Hard TP levels (will be executed as Market Order TP if level reached, and the size ratio is based on remaining in the active position). This is enforced no matter what.
-# Structure is hard_tp_price_ratio (after leverage) : hard_tp_position_ratio
-# NOTE: Order DOES NOT matter
-default_hard_tp = {
-    25.0 : 50.0,
-    50.0 : 25.0,
-    100.0 : 12.5,
-    200.0 : 12.5
+default_hard_tp = False # If set to True, it will always enforce these TP's even if you cancel or edit them. If set to False, it will only create them as Soft ones if no TP exists for the position (upon position creation OR if all TP's are removed), and will allow you to move them around or change their values as you wish
+default_market_tp = False # If set to True, it will ensure profits are taken as Market Orders instead of Limit Orders
+default_tp = {
+    25.0 : 25.0,
+    50.0 : 10.0,
+    100.0 : 25.0,
+    150.0 : 25.0,
+    200.0 : 25.0,
+    300.0 : 100.0
 }
 
 # Enforce Lock In Profits Stop Loss feature switch (True/False)
-enforce_lock_in_p_sl = True 
+enforce_lock_in_p_sl = True
 # Default Lock In Profits Stop Loss levels (when price level ratio is hit, position's SL moved to defined price ratio). Note it is a Hard SL meaning you can't loose once you hit those profit levels.
 # Structure is lock_in_p_price_ratio (after leverage): lock_in_p_sl_ratio
 # NOTE: Order DOES matter. Make sure the order is in Ascending OR Descending on the left and right sides to avoid issues
 default_lock_in_p_sl = {
-    1.4 : 0.4,
-    2.0 : 0.8,
-    25.0 : 10.0,
-    50.0 : 20.0,
-    100.0 : 50.0,
-    200.0 : 100.0
+    20.0 : 5.0,
+    50.0 : 15.0,
+    100.0 : 40.0,
+    150.0 : 70.0,
+    200.0 : 100.0,
+    300.0 : 200.0
 }
 
 #################################################################################################################
@@ -163,14 +171,15 @@ if __name__ == "__main__":
             if "mode" in position:
                 mode = position["mode"] # 0 for One-Way Mode, 3 for Hedge Mode
             
+            #######################################################
+            # Enforce Static Stop Loss feature
+            #######################################################
             
-            
-            # Enforce Stop Loss Range feature
-            if(enforce_sl_range):
-                if symbol in override_sl_cap_ratio: # Look if any custom stop ratio for this symbol
-                    stop_loss_cap_ratio = override_sl_cap_ratio[symbol]
+            if(enforce_sl_static):
+                if symbol in override_sl_static_cap_ratio: # Look if any custom stop ratio for this symbol
+                    stop_loss_cap_ratio = override_sl_static_cap_ratio[symbol]
                 else:
-                    stop_loss_cap_ratio = default_sl_cap_ratio
+                    stop_loss_cap_ratio = default_sl_static_cap_ratio
 
                 # FIRST check if immediate market close is needed in case price already breached with no Stop Loss in place
                 # Fetch latest tickers
@@ -206,6 +215,152 @@ if __name__ == "__main__":
                                 except Exception:
                                     pass
 
+                # Otherwise, search Conditional Orders if Stop Loss already exists with 'qty'=position size AND 'trigger_price' at the required price
+                full_static_sl_found = False
+                
+                try:
+                    fetched_conditional_orders = session.query_conditional_order(symbol=symbol)
+                except Exception:
+                    pass
+                if(fetched_conditional_orders):
+                    for conditional_order in fetched_conditional_orders["result"]:
+                        # Note: order side should be opposite of position size
+                        if side == "Buy" and conditional_order['side'] == "Sell" and conditional_order['order_type'] == 'Market' and conditional_order['order_status'] == 'Untriggered': # Stop Loss for a Long
+                            if symbol.endswith('USDT'): # USDT Perpetual
+                                stop_price = float(conditional_order['trigger_price'])
+                                stop_order_id = conditional_order['stop_order_id']
+                                if stop_price < entry_price and conditional_order['close_on_trigger'] == True and conditional_order['reduce_only'] == True:
+                                    position_leveraged_stop_loss = round((entry_price - (((stop_loss_cap_ratio/100) / leverage) * entry_price)), final_decimals_count)
+                                    if (stop_price == position_leveraged_stop_loss or (stop_price > entry_price and last_price > entry_price)) and conditional_order['qty'] == size:
+                                        # Stop Loss found at the static ratio OR in profit, keep it
+                                        full_static_sl_found = True
+                                    else:
+                                        # Stop Loss found but not at the static price, remove it
+                                        try:
+                                            session.cancel_conditional_order(symbol=symbol, stop_order_id=stop_order_id) 
+                                        except Exception:
+                                            pass
+                                        
+                            else: # Inverse Perpetuals or Futures
+                                stop_price = float(conditional_order['stop_px'])
+                                stop_order_id = conditional_order['order_id']
+                                position_leveraged_stop_loss = round((entry_price - (((stop_loss_cap_ratio/100) / leverage) * entry_price)), final_decimals_count)
+                                if (stop_price == position_leveraged_stop_loss or (stop_price > entry_price and last_price > entry_price)) and conditional_order['qty'] == size:
+                                    # Stop Loss found at the static ratio OR in profit, keep it
+                                    full_static_sl_found = True
+                                else:
+                                    # Stop Loss found but not at the static price, remove it
+                                    try:
+                                        session.cancel_conditional_order(symbol=symbol, stop_order_id=stop_order_id) 
+                                    except Exception:
+                                        pass
+
+                        elif side == "Sell" and conditional_order['side'] == "Buy" and conditional_order['order_type'] == 'Market' and conditional_order['order_status'] == 'Untriggered': # Stop Loss for a Short
+                            if symbol.endswith('USDT'): # USDT Perpetual
+                                stop_price = float(conditional_order['trigger_price'])
+                                stop_order_id = conditional_order['stop_order_id']
+                                if stop_price > entry_price and conditional_order['close_on_trigger'] == True and conditional_order['reduce_only'] == True:
+                                    position_leveraged_stop_loss = round((entry_price + (((stop_loss_cap_ratio/100) / leverage) * entry_price)), final_decimals_count)
+                                    if (stop_price == position_leveraged_stop_loss or (stop_price < entry_price and last_price < entry_price)) and conditional_order['qty'] == size:
+                                        # Stop Loss found at the static ratio OR in profit, keep it
+                                        full_static_sl_found = True
+                                    else:
+                                        # Stop Loss found but not at the static price, remove it
+                                        try:
+                                            session.cancel_conditional_order(symbol=symbol, stop_order_id=stop_order_id) 
+                                        except Exception:
+                                            pass
+                            
+                            else: # Inverse Perpetuals or Futures
+                                stop_price = float(conditional_order['stop_px'])
+                                stop_order_id = conditional_order['order_id']
+                                position_leveraged_stop_loss = round((entry_price + (((stop_loss_cap_ratio/100) / leverage) * entry_price)), final_decimals_count)
+                                if (stop_price == position_leveraged_stop_loss or (stop_price < entry_price and last_price < entry_price)) and conditional_order['qty'] == size:
+                                    # Stop Loss found at the static ratio OR in profit, keep it
+                                    full_static_sl_found = True
+                                else:
+                                    # Stop Loss found but not at the static price, remove it
+                                    try:
+                                        session.cancel_conditional_order(symbol=symbol, stop_order_id=stop_order_id) 
+                                    except Exception:
+                                        pass
+                            
+                if full_static_sl_found == False:
+                    # We couldn't find a static Stop Loss, so add it
+                    # Prepare set_trading_stop arguments to pass to API
+                    set_trading_stop_args = {'symbol': symbol, 'side': side}
+                    if tp_sl_mode == "Partial":
+                        set_trading_stop_args['sl_size'] = size # If Partial Mode then we need to send full size to close full position
+                    
+                    if side == 'Buy':
+                        position_leveraged_stop_loss = round((entry_price - (((stop_loss_cap_ratio/100) / leverage) * entry_price)), final_decimals_count)
+                        if stop_loss == 0 or stop_loss < position_leveraged_stop_loss:
+                            try:
+                                set_trading_stop_args['stop_loss'] = position_leveraged_stop_loss
+                                session.set_trading_stop(**set_trading_stop_args)
+                                log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " LONG Maximum Static Stop-Loss adjusted to: "+str(position_leveraged_stop_loss)+" (" + str(stop_loss_cap_ratio) + "%)."
+                                print(log)
+                                with open("SL_protected.txt", "a") as myfile:
+                                    myfile.write(log+'\n')
+                            except Exception:
+                                pass
+                    elif side == 'Sell':
+                        position_leveraged_stop_loss = round((entry_price + (((stop_loss_cap_ratio/100) / leverage) * entry_price)), final_decimals_count)
+                        if stop_loss == 0 or stop_loss > position_leveraged_stop_loss:
+                            try:
+                                set_trading_stop_args['stop_loss'] = position_leveraged_stop_loss
+                                session.set_trading_stop(**set_trading_stop_args)
+                                log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " SHORT Maximum Static Stop-Loss adjusted to: "+str(position_leveraged_stop_loss)+" (" + str(stop_loss_cap_ratio) + "%)."
+                                print(log)
+                                with open("SL_protected.txt", "a") as myfile:
+                                    myfile.write(log+'\n')
+                            except Exception:
+                                pass
+                                
+                                
+            #######################################################
+            # Enforce Stop Loss Range feature
+            #######################################################
+            
+            if(enforce_sl_range):
+                if symbol in override_sl_range_cap_ratio: # Look if any custom stop ratio for this symbol
+                    stop_loss_cap_ratio = override_sl_range_cap_ratio[symbol]
+                else:
+                    stop_loss_cap_ratio = default_sl_range_cap_ratio
+
+                # FIRST check if immediate market close is needed in case price already breached with no Stop Loss in place
+                # Fetch latest tickers
+                try:
+                    fetched_latest_tickers = session.latest_information_for_symbol(symbol=symbol)['result']
+                except Exception:
+                    pass
+                if(fetched_latest_tickers):
+                    for ticker in fetched_latest_tickers:
+                        if ticker['symbol'] == symbol:
+                            last_price = float(ticker['last_price'])
+                            
+                        if side == 'Buy':
+                            position_leveraged_stop_loss = round((entry_price - (((stop_loss_cap_ratio/100) / leverage) * entry_price)), final_decimals_count)
+                            if last_price < position_leveraged_stop_loss:
+                                try:
+                                    session.place_active_order(symbol=symbol, side="Sell", order_type="Market", qty=size, time_in_force="GoodTillCancel", reduce_only=True, close_on_trigger=True)
+                                    log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " LONG Force-Stopped: "+str(last_price)+"."
+                                    print(log)
+                                    with open("SL_forced.txt", "a") as myfile:
+                                        myfile.write(log+'\n')
+                                except Exception:
+                                    pass
+                        elif side == 'Sell':
+                            position_leveraged_stop_loss = round((entry_price + (((stop_loss_cap_ratio/100) / leverage) * entry_price)), final_decimals_count)
+                            if last_price > position_leveraged_stop_loss:
+                                try:
+                                    session.place_active_order(symbol=symbol, side="Buy", order_type="Market", qty=size, time_in_force="GoodTillCancel", reduce_only=True, close_on_trigger=True)
+                                    log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " SHORT Force-Stopped: "+str(last_price)+"."
+                                    print(log)
+                                    with open("SL_forced.txt", "a") as myfile:
+                                        myfile.write(log+'\n')
+                                except Exception:
+                                    pass
 
                 # Otherwise, search Conditional Orders if Stop Loss already exists with 'qty'=position size AND 'trigger_price' within allowed range
                 total_allowed_stop_loss_found = 0.0
@@ -277,8 +432,8 @@ if __name__ == "__main__":
                                     except Exception:
                                         pass
                             
-                # We couldn't find enough Stop Losses in the allowed range, so add the remaining needed
                 if total_allowed_stop_loss_found < size:
+                    # We couldn't find enough Stop Losses in the allowed range, so add the remaining needed
                     # Prepare set_trading_stop arguments to pass to API
                     set_trading_stop_args = {'symbol': symbol, 'side': side}
                     if tp_sl_mode == "Partial":
@@ -310,11 +465,11 @@ if __name__ == "__main__":
                                     myfile.write(log+'\n')
                             except Exception:
                                 pass
-                                
-            # Enforce Take Profits feature
-            # if(enforce_take_p):
                 
+            #######################################################
             # Enforce Lock In Profits Stop Loss feature
+            #######################################################
+            
             if(enforce_lock_in_p_sl):
                 # Fetch latest tickers
                 try:
@@ -370,8 +525,9 @@ if __name__ == "__main__":
                                                         session.cancel_conditional_order(symbol=symbol, stop_order_id=stop_order_id)    
                                                     except Exception:
                                                         pass
-                                # We couldn't find enough Stop Losses in the allowed range, so add the remaining needed
+                                
                                 if total_in_profit_stop_loss_found < size:
+                                    # We couldn't find enough Stop Losses in the allowed range, so add the remaining needed
                                     # Prepare set_trading_stop arguments to pass to API
                                     set_trading_stop_args = {'symbol': symbol, 'side': side}
                                     if tp_sl_mode == "Partial":
@@ -433,8 +589,8 @@ if __name__ == "__main__":
                                                     except Exception:
                                                         pass
 
-                                # We couldn't find enough Stop Losses in the allowed range, so add the remaining needed
                                 if total_in_profit_stop_loss_found < size:
+                                    # We couldn't find enough Stop Losses in the allowed range, so add the remaining needed
                                     # Prepare set_trading_stop arguments to pass to API
                                     set_trading_stop_args = {'symbol': symbol, 'side': side}
                                     if tp_sl_mode == "Partial":
