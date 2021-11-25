@@ -10,7 +10,7 @@ from pybit import HTTP, WebSocket
 ###### Configurations (EDIT)
 api_key = 'TYPE BYBIT API KEY HERE'
 api_secret = 'TYPE BYBIT API SECRET HERE'
-Test = True # Set to False to use the Mainnet, or False to use the Testnet
+network = 'mainnet' # Set to 'mainnet' or 'testnet' depending on which Network you want to use (note: usually each network requires separate API credentials)
 exchange_market_taker_fee = 0.075
 exchange_market_maker_fee = -0.025
 
@@ -81,11 +81,11 @@ sessionURL_mainnet = "https://api.bybit.com"
 sessionURL_testnet = "https://api-testnet.bybit.com"
 ######
 
-if Test == True:
+if network == 'testnet':
     wsURL_USDT = wsURL_USDT_testnet
     wsURL_Inverse = wsURL_Inverse_testnet
     sessionURL = sessionURL_testnet
-else:
+elif network == 'mainnet':
     wsURL_USDT = wsURL_USDT_mainnet
     wsURL_Inverse = wsURL_Inverse_mainnet
     sessionURL = sessionURL_mainnet
@@ -127,6 +127,7 @@ if __name__ == "__main__":
     while(1):    
         # Fetch list of active positions
         fetched_sessions = []
+        fetched_positions = []
         try:
             fetched_positions = session.my_position(endpoint="/private/linear/position/list")['result'] # USDT Perpetual
         except Exception:
