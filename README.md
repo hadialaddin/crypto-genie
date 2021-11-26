@@ -14,7 +14,15 @@ Always verify any actions taken by these monitors, and manually manage your posi
 ### Risk Management Monitor
 Automated Risk Management Monitor for cryptocurrencies exchanges that forces all open positions to adhere to specific risk ratios, defined per asset. Simply, it automatically adds/modifies _**Stop Loss(es)**_ for any position created or modified, making sure that the maximum Stop Loss (after leverage, in case of using Margin) does not exceed a specific ratio. It also has an Emergency Enforced Market Stop Loss in case a position is open and the price already broke the allowed Stop Loss range.
 
-NOTE: Updating the Leverage won't automatically update your stop loss for the respective position. You would need to change it upon updating so that it auto adjusts.
+NOTE: Updating the Leverage might not automatically update your stop loss for the respective position. You would need to change it upon updating so that it auto adjusts.
+
+#### Static Stop Loss
+
+This feature allows you to pre-set a Stop Loss ratio that will be enforced without allowing the user to move it above or below it. It will only allow moving the Stop Loss when position is in profit, which would allow moving it to breakeven or profit. Also, adding into the position will automatically adjust the Stop Loss to maintain the same ratio defined away from the new averaged Entry Price of the position. It will ensure full position-size Stop Loss always in place.
+
+#### Stop Loss Range
+
+This feature allows you to pre-set a maximum range for the Stop Loss, allowing you to move your Stop Loss closer to the entry price (lower loss or in profit) but not further away, thus enforcing a maximum loss.
 
 ### Take Profits Monitor
 Automated Take Profits Monitor that will ensure specific pre-defined quantities of the positions are taken at specific price levels, to avoid missing on potential gains that usually get lost if not taken.
@@ -28,7 +36,8 @@ Automated Lock In Profits Monitor to ensure the Stop Loss moves from Loss to Bre
 
 
 - Video 1: [https://youtu.be/Alu4FlkTKi4](https://youtu.be/Alu4FlkTKi4)
-- Video 2: [https://youtu.be/yhkY9F-Py1o](https://youtu.be/yhkY9F-Py1o)
+- Video 2: [https://youtu.be/r0wvB_O3wjk](https://youtu.be/r0wvB_O3wjk)
+- Video 3: [https://youtu.be/yhkY9F-Py1o](https://youtu.be/yhkY9F-Py1o)
 
 ## Installation
 
