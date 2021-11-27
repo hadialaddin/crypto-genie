@@ -17,11 +17,21 @@ exchange_market_maker_fee = -0.025
 # Enforce Static Stop Loss at an exact ratio (not less not more) feature switch (True/False). Only exception is if position is in profit, it allows moving the SL to breakeven or profit.
 enforce_sl_static = True
 # Maximum Stop Loss % allowed (ratio of price difference, after leverage)
-default_sl_static_cap_ratio = 5.0
+default_sl_static_cap_ratio = 20.0
 # Use this to set custom Stop Loss % for specific asset pairs (override the default), you can add more pairs as you desire by adding a comma at the end and a new symbol
 override_sl_static_cap_ratio = {
   "BTCUSDT": 5.0,
   "ETHUSDT": 5.0
+}
+
+# Enforce Total Balance Static Stop Loss at an exact ratio (not less not more) feature switch (True/False). Only exception is if position is in profit, it allows moving the SL to breakeven or profit.
+enforce_tb_sl_static = True
+# Maximum Stop Loss % allowed (ratio of price difference, after leverage)
+default_tb_sl_static_cap_ratio = 5.0
+# Use this to set custom Stop Loss % for specific asset pairs (override the default), you can add more pairs as you desire by adding a comma at the end and a new symbol
+override_tb_sl_static_cap_ratio = {
+  "SOLUSDT": 1.0,
+  "BTCUSD": 2.0
 }
 
 # Enforce Stop Loss Range feature switch (True/False). NOTE: You should only activate either the Static Stop Loss feature or this one, not both, to avoid issues.
@@ -93,9 +103,13 @@ elif network == 'mainnet':
 if __name__ == "__main__":
     session = HTTP(endpoint=sessionURL, api_key=api_key, api_secret=api_secret)
     tick_size = {}
-
-    for symbol in session.query_symbol()["result"]:
+    base_currency = {}
+    quote_currency = {}
+    symbols = session.query_symbol()["result"]
+    for symbol in symbols:
         tick_size[symbol["name"]] = symbol["price_filter"]["tick_size"]
+        base_currency[symbol["name"]] = symbol["base_currency"]
+        quote_currency[symbol["name"]] = symbol["quote_currency"]
         
     ''' *** We wil not use WebSockets for now, only REST API due to missing fields in the WebSocket API ***
     ws_USDT = WebSocket(wsURL_USDT, subscriptions=['position'], api_key=api_key, api_secret=api_secret)
@@ -165,6 +179,7 @@ if __name__ == "__main__":
             leverage = float(position["leverage"])
             stop_loss = float(position["stop_loss"])
             entry_price = float(position["entry_price"])
+            unrealised_pnl = float(position["unrealised_pnl"])
             final_decimals_count = str(tick_size[symbol])[::-1].find('.') - 1 # Tick Size number of decimals - 1
             tp_sl_mode = position["tp_sl_mode"] # "Partial" or "Full" position TP/SL mode [Currently not supported in WebSocket API]
             if "position_idx" in position:
@@ -320,6 +335,56 @@ if __name__ == "__main__":
                                 
                                 
             #######################################################
+            # Enforce Total Balance Static Stop Loss feature
+            #######################################################
+            
+            if(enforce_tb_sl_static):
+                if symbol in override_tb_sl_static_cap_ratio: # Look if any custom stop ratio for this symbol
+                    stop_loss_cap_ratio = override_tb_sl_static_cap_ratio[symbol]
+                else:
+                    stop_loss_cap_ratio = default_tb_sl_static_cap_ratio
+
+                # Check if immediate market close is needed in case Unrealised PnL already reached the specified Balance Stop Loss ratio
+                # Fetch latest tickers
+                try:
+                    fetched_latest_tickers = session.latest_information_for_symbol(symbol=symbol)['result']
+                except Exception:
+                    pass
+                if(fetched_latest_tickers):
+                    for ticker in fetched_latest_tickers:
+                        if ticker['symbol'] == symbol:
+                            last_price = float(ticker['last_price'])
+                            
+                        # First, fetch Wallet Balance
+                        if quote_currency[symbol] == "USDT":
+                            wallet_balance = session.get_wallet_balance(coin="USDT")["result"]["USDT"]["wallet_balance"]
+                        else:
+                            wallet_balance = session.get_wallet_balance(coin=base_currency[symbol])["result"][base_currency[symbol]]["wallet_balance"]
+                            
+                        if wallet_balance > 0:
+                            # unrealised_pnl is negative if in loss
+                            if unrealised_pnl <= (-1 * (wallet_balance * stop_loss_cap_ratio/100)):
+                                if side == 'Buy':
+                                    try:
+                                        session.place_active_order(symbol=symbol, side="Sell", order_type="Market", qty=size, time_in_force="GoodTillCancel", reduce_only=True, close_on_trigger=True)
+                                        log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " LONG Balance Static Force-Stopped with unrealised PnL of "+str(unrealised_pnl)+" at: "+str(last_price)+"."
+                                        print(log)
+                                        with open("SL_forced.txt", "a") as myfile:
+                                            myfile.write(log+'\n')
+                                    except Exception:
+                                        pass
+                                elif side == 'Sell':
+                                    try:
+                                        session.place_active_order(symbol=symbol, side="Buy", order_type="Market", qty=size, time_in_force="GoodTillCancel", reduce_only=True, close_on_trigger=True)
+                                        log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " SHORT Balance Static Force-Stopped with unrealised PnL of "+str(unrealised_pnl)+" at: "+str(last_price)+"."
+                                        print(log)
+                                        with open("SL_forced.txt", "a") as myfile:
+                                            myfile.write(log+'\n')
+                                    except Exception:
+                                        pass
+                                
+                                
+            #######################################################
             # Enforce Stop Loss Range feature
             #######################################################
             
@@ -466,6 +531,7 @@ if __name__ == "__main__":
                                     myfile.write(log+'\n')
                             except Exception:
                                 pass
+                                
                 
             #######################################################
             # Enforce Lock In Profits Stop Loss feature
