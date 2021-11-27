@@ -20,6 +20,10 @@ NOTE: Updating the Leverage might not automatically update your stop loss for th
 
 This feature allows you to pre-set a Stop Loss ratio that will be enforced without allowing the user to move it above or below it. It will only allow moving the Stop Loss when position is in profit, which would allow moving it to breakeven or profit. Also, adding into the position will automatically adjust the Stop Loss to maintain the same ratio defined away from the new averaged Entry Price of the position. It will ensure full position-size Stop Loss always in place.
 
+#### Total Balance Static Stop Loss
+
+This feature allows you to set a maximum amount (ratio) of your Total Balance you would like to automatically close any position when its Unrealised PnL hits it. This guarantees a position would not loose more than that amount.
+
 #### Stop Loss Range
 
 This feature allows you to pre-set a maximum range for the Stop Loss, allowing you to move your Stop Loss closer to the entry price (lower loss or in profit) but not further away, thus enforcing a maximum loss.
