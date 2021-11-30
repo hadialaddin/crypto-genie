@@ -29,7 +29,7 @@ This feature allows you to set a maximum amount (ratio) of your Total Balance yo
 This feature allows you to pre-set a maximum range for the Stop Loss, allowing you to move your Stop Loss closer to the entry price (lower loss or in profit) but not further away, thus enforcing a maximum loss.
 
 ### Take Profits Monitor
-Automated Take Profits Monitor that will ensure specific pre-defined quantities of the positions are taken at specific price levels, to avoid missing on potential gains that usually get lost if not taken.
+Automated Take Profits Monitor that will ensure specific pre-defined ratios of active positions are taken at specific price levels (in profit ratios), to avoid missing on potential gains that usually get lost if not taken.
 
 ### Lock In Profits Monitor
 Automated Lock In Profits Monitor to ensure the Stop Loss moves from Loss to Breakeven or In-Profit to avoid incurring losses once a position satisfies the price level conditions.
@@ -41,7 +41,8 @@ Automated Lock In Profits Monitor to ensure the Stop Loss moves from Loss to Bre
 
 - Video 1: [https://youtu.be/Alu4FlkTKi4](https://youtu.be/Alu4FlkTKi4)
 - Video 2: [https://youtu.be/r0wvB_O3wjk](https://youtu.be/r0wvB_O3wjk)
-- Video 3: [https://youtu.be/yhkY9F-Py1o](https://youtu.be/yhkY9F-Py1o)
+- VIdeo 3: [https://youtu.be/8kN0qsg9JcA](https://youtu.be/8kN0qsg9JcA)
+- Video 4: [https://youtu.be/yhkY9F-Py1o](https://youtu.be/yhkY9F-Py1o)
 
 ## Installation
 
