@@ -15,26 +15,28 @@ exchange_market_taker_fee = 0.075
 exchange_market_maker_fee = -0.025
 
 # Enforce Static Stop Loss at an exact ratio (not less not more) feature switch (True/False). Only exception is if position is in profit, it allows moving the SL to breakeven or profit.
-enforce_sl_static = True
+# NOTE: It will always set the Stop Loss with Full (100%) position size.
+enforce_sl_static = False
 # Maximum Stop Loss % allowed (ratio of price difference, after leverage)
 default_sl_static_cap_ratio = 20.0
 # Use this to set custom Stop Loss % for specific asset pairs (override the default), you can add more pairs as you desire by adding a comma at the end and a new symbol
 override_sl_static_cap_ratio = {
-  "BTCUSDT": 5.0,
-  "ETHUSDT": 5.0
+  "BTCUSDT": 20.0,
+  "ETHUSDT": 20.0
 }
 
 # Enforce Total Balance Static Stop Loss at an exact ratio (not less not more) feature switch (True/False). Only exception is if position is in profit, it allows moving the SL to breakeven or profit.
+# NOTE: It will always set the Stop Loss with Full (100%) position size.
 enforce_tb_sl_static = True
 # Maximum Stop Loss % allowed (ratio of price difference, after leverage)
 default_tb_sl_static_cap_ratio = 5.0
 # Use this to set custom Stop Loss % for specific asset pairs (override the default), you can add more pairs as you desire by adding a comma at the end and a new symbol
 override_tb_sl_static_cap_ratio = {
-  "SOLUSDT": 1.0,
-  "BTCUSD": 2.0
+  "SOLUSDT": 10.0
 }
 
 # Enforce Stop Loss Range feature switch (True/False). NOTE: You should only activate either the Static Stop Loss feature or this one, not both, to avoid issues.
+# NOTE: It will always set the Stop Loss with Full (100%) position size. If "Tp/SL on Selected Position" is used on the exchange, it will make sure to set 100% as well (it will add the remaining of the Stop Losses needed to fully Stop the position)
 enforce_sl_range = False
 # Maximum Stop Loss % allowed (ratio of price difference, after leverage)
 default_sl_range_cap_ratio = 15.0
@@ -47,28 +49,28 @@ override_sl_range_cap_ratio = {
 }
 
 # Enforce Take Profits feature switch (True/False)
-enforce_tp = False
-# Default Initial TP levels (will be created only if no other TPs exist). Won't be enforced otherwise.
-# Structure is init_tp_price_ratio (after leverage) : init_tp_position_ratio WHERE init_tp_position_ratio < 100
+# NOTE: Take profits are executed automatically as Market Orders at the price levels defined, and the quantity is calculated in real-time at the time of execution based on the position's size.
+enforce_tp = True
+# Tolerance ratio: good practice to add tolerance ratio which is how far away from the target the Bot would consider the level invalid and target the next level. This is a ratio of the ratio being targetted (eg. 1% tolerance means 1% of the distance between the Position Entry Price and the target Take Profit Level)
+default_tp_tolerance_ratio = 1.0
+# Structure is tp_price_ratio (after leverage) : tp_size_ratio WHERE tp_size_ratio <= 100 (quantity ratio of the position to close)
 # NOTE: Order DOES NOT matter
-default_hard_tp = False # If set to True, it will always enforce these TP's even if you cancel or edit them. If set to False, it will only create them as Soft ones if no TP exists for the position (upon position creation OR if all TP's are removed), and will allow you to move them around or change their values as you wish
-default_market_tp = False # If set to True, it will ensure profits are taken as Market Orders instead of Limit Orders
 default_tp = {
     25.0 : 25.0,
-    50.0 : 10.0,
+    50.0 : 25.0,
     100.0 : 25.0,
-    150.0 : 25.0,
-    200.0 : 25.0,
-    300.0 : 100.0
+    150.0 : 50.0,
+    200.0 : 100.0
 }
 
 # Enforce Lock In Profits Stop Loss feature switch (True/False)
+# IMPORTANT NOTE: This feature will make sure to place a 100% Stop Loss at the desired levels and move it as needed, to fully close the position in profit.
 enforce_lock_in_p_sl = True
 # Default Lock In Profits Stop Loss levels (when price level ratio is hit, position's SL moved to defined price ratio). Note it is a Hard SL meaning you can't loose once you hit those profit levels.
 # Structure is lock_in_p_price_ratio (after leverage): lock_in_p_sl_ratio
 # NOTE: Order DOES matter. Make sure the order is in Ascending OR Descending on the left and right sides to avoid issues
 default_lock_in_p_sl = {
-    20.0 : 5.0,
+    25.0 : 5,
     50.0 : 15.0,
     100.0 : 40.0,
     150.0 : 70.0,
@@ -532,6 +534,168 @@ if __name__ == "__main__":
                             except Exception:
                                 pass
                                 
+            #######################################################                    
+            # Enforce Take Profits feature
+            #######################################################  
+                                
+            if(enforce_tp):
+                # Fetch latest tickers
+                try:
+                    fetched_latest_tickers = session.latest_information_for_symbol(symbol=symbol)['result']
+                except Exception:
+                    pass
+                if(fetched_latest_tickers):
+                    for ticker in fetched_latest_tickers:
+                        if ticker['symbol'] == symbol:
+                            last_price = float(ticker['last_price'])     
+                        
+                        if side == 'Buy':
+                            # Sarch Conditional Orders if Take Profits already exist
+                            tp_found = False
+                            
+                            try:
+                                fetched_conditional_orders = session.query_conditional_order(symbol=symbol)
+                            except Exception:
+                                pass
+                            if(fetched_conditional_orders):
+                                for conditional_order in fetched_conditional_orders["result"]:
+                                    if not tp_found: # If we found a valid TP, no need to iterate any more
+                                        if symbol.endswith('USDT'): # USDT Perpetual
+                                            stop_price = float(conditional_order['trigger_price'])
+                                            stop_order_id = conditional_order['stop_order_id']
+
+                                            if conditional_order['side'] == 'Sell' and stop_price > last_price and stop_price > entry_price and conditional_order['close_on_trigger'] == True and conditional_order['reduce_only'] == True:
+                                                # Take Profit found, make sure it is one of the pre-defined ones and make sure its quantity is up to date as well
+                                                for elem in default_tp.items():
+                                                    tp_price_ratio = elem[0]
+                                                    tp_size_ratio = elem[1]
+                                                    tp_price = round((entry_price + (((tp_price_ratio/100) / leverage) * entry_price)), final_decimals_count)
+                                                    tp_size = round(float(size * (tp_size_ratio / 100)), 3)
+                                                    if tp_price==stop_price and (tp_size==conditional_order['qty'] or math.floor(tp_size * 10)/10.0==conditional_order['qty'] or math.floor(tp_size * 100)/100.0==conditional_order['qty'] or math.floor(tp_size * 1000)/1000.0==conditional_order['qty'] or math.floor(tp_size * 10000)/10000.0==conditional_order['qty']):
+                                                        # We found a valid pre-defined TP, keep it (note we check the floor in case the exchange did remove decimals upon creating the order)
+                                                        tp_found = True
+                                                if not tp_found:
+                                                    # Invalid TP (or updated position size not reflected in the TP), REMOVE IT
+                                                    try:
+                                                        session.cancel_conditional_order(symbol=symbol, stop_order_id=stop_order_id) 
+                                                    except Exception:
+                                                        pass
+                                        else: # Inverse Perpetuals or Futures
+                                            stop_price = float(conditional_order['stop_px'])
+                                            stop_order_id = conditional_order['order_id']
+                                            if conditional_order['side'] == 'Sell' and stop_price > last_price and stop_price > entry_price and conditional_order['close_on_trigger'] == True and conditional_order['reduce_only'] == True:
+                                                # Take Profit found, make sure it is one of the pre-defined ones and make sure its quantity is up to date as well
+                                                for elem in default_tp.items():
+                                                    tp_price_ratio = elem[0]
+                                                    tp_size_ratio = elem[1]
+                                                    tp_price = round((entry_price + (((tp_price_ratio/100) / leverage) * entry_price)), final_decimals_count)
+                                                    tp_size = round(float(size * (tp_size_ratio / 100)), 3)
+                                                    if tp_price==stop_price and (tp_size==conditional_order['qty'] or math.floor(tp_size * 10)/10.0==conditional_order['qty'] or math.floor(tp_size * 100)/100.0==conditional_order['qty'] or math.floor(tp_size * 1000)/1000.0==conditional_order['qty'] or math.floor(tp_size * 10000)/10000.0==conditional_order['qty']):
+                                                        # We found a valid pre-defined TP, keep it (note we check the floor in case the exchange did remove decimals upon creating the order)
+                                                        tp_found = True
+                                                if not tp_found:
+                                                    # Invalid TP (or updated position size not reflected in the TP), REMOVE IT
+                                                    try:
+                                                        session.cancel_conditional_order(symbol=symbol, stop_order_id=stop_order_id) 
+                                                    except Exception:
+                                                        pass
+                   
+                            if not tp_found: # No TPs found, so add (this way we kind of avoid re-adding the same TP if price hit and found resistance at and retested it. so we don't TP the same level twice)
+                                # We couldn't find any TPs, let's add the suitable one
+                                # Prepare set_trading_stop arguments to pass to API
+                                set_trading_stop_args = {'symbol': symbol, 'side': side}
+                                
+                                for elem in sorted(default_tp.items(), reverse=False): # Sort Ascending to find the nearest TP level
+                                    tp_price_ratio = elem[0]
+                                    tp_size_ratio = elem[1]
+                                    
+                                    set_trading_stop_args['take_profit'] = round((entry_price + (((tp_price_ratio/100) / leverage) * entry_price)), final_decimals_count)
+                                    set_trading_stop_args['tp_size'] = round(float(size * (tp_size_ratio / 100)), 3)
+                                    
+                                    if last_price < set_trading_stop_args['take_profit'] - (default_tp_tolerance_ratio/100) * (set_trading_stop_args['take_profit'] - entry_price):
+                                        try:
+                                            session.set_trading_stop(**set_trading_stop_args)
+                                            log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " LONG Take-Profit placed: "+str(tp_size_ratio)+"% of Quantity ("+str(set_trading_stop_args['tp_size'])+") @ "+ str(tp_price_ratio) +"% in Profit ("+str(set_trading_stop_args['take_profit'])+")."
+                                            print(log)
+                                            with open("TP.txt", "a") as myfile:
+                                                myfile.write(log+'\n')
+                                            break # No need to add more TPs, we only place 1 TP at a time
+                                        except Exception:
+                                            pass                 
+                                
+                        elif side == 'Sell':   
+                            # Sarch Conditional Orders if Take Profits already exist
+                            tp_found = False
+                            
+                            try:
+                                fetched_conditional_orders = session.query_conditional_order(symbol=symbol)
+                            except Exception:
+                                pass
+                            if(fetched_conditional_orders):
+                                for conditional_order in fetched_conditional_orders["result"]:
+                                    if not tp_found: # If we found a valid TP, no need to iterate any more
+                                        if symbol.endswith('USDT'): # USDT Perpetual
+                                            stop_price = float(conditional_order['trigger_price'])
+                                            stop_order_id = conditional_order['stop_order_id']
+
+                                            if conditional_order['side'] == 'Buy' and stop_price < last_price and stop_price < entry_price and conditional_order['close_on_trigger'] == True and conditional_order['reduce_only'] == True:
+                                                # Take Profit found, make sure it is one of the pre-defined ones and make sure its quantity is up to date as well
+                                                for elem in default_tp.items():
+                                                    tp_price_ratio = elem[0]
+                                                    tp_size_ratio = elem[1]
+                                                    tp_price = round((entry_price - (((tp_price_ratio/100) / leverage) * entry_price)), final_decimals_count)
+                                                    tp_size = round(float(size * (tp_size_ratio / 100)), 3)
+                                                    if tp_price==stop_price and (tp_size==conditional_order['qty'] or math.floor(tp_size * 10)/10.0==conditional_order['qty'] or math.floor(tp_size * 100)/100.0==conditional_order['qty'] or math.floor(tp_size * 1000)/1000.0==conditional_order['qty'] or math.floor(tp_size * 10000)/10000.0==conditional_order['qty']):
+                                                        # We found a valid pre-defined TP, keep it (note we check the floor in case the exchange did remove decimals upon creating the order)
+                                                        tp_found = True
+                                                if not tp_found:
+                                                    # Invalid TP (or updated position size not reflected in the TP), REMOVE IT
+                                                    try:
+                                                        session.cancel_conditional_order(symbol=symbol, stop_order_id=stop_order_id) 
+                                                    except Exception:
+                                                        pass
+                                        else: # Inverse Perpetuals or Futures
+                                            stop_price = float(conditional_order['stop_px'])
+                                            stop_order_id = conditional_order['order_id']
+                                            if conditional_order['side'] == 'Buy' and stop_price < last_price and stop_price < entry_price and conditional_order['close_on_trigger'] == True and conditional_order['reduce_only'] == True:
+                                                # Take Profit found, make sure it is one of the pre-defined ones and make sure its quantity is up to date as well
+                                                for elem in default_tp.items():
+                                                    tp_price_ratio = elem[0]
+                                                    tp_size_ratio = elem[1]
+                                                    tp_price = round((entry_price - (((tp_price_ratio/100) / leverage) * entry_price)), final_decimals_count)
+                                                    tp_size = round(float(size * (tp_size_ratio / 100)), 3)
+                                                    if tp_price==stop_price and (tp_size==conditional_order['qty'] or math.floor(tp_size * 10)/10.0==conditional_order['qty'] or math.floor(tp_size * 100)/100.0==conditional_order['qty'] or math.floor(tp_size * 1000)/1000.0==conditional_order['qty'] or math.floor(tp_size * 10000)/10000.0==conditional_order['qty']):
+                                                        # We found a valid pre-defined TP, keep it (note we check the floor in case the exchange did remove decimals upon creating the order)
+                                                        tp_found = True
+                                                if not tp_found:
+                                                    # Invalid TP (or updated position size not reflected in the TP), REMOVE IT
+                                                    try:
+                                                        session.cancel_conditional_order(symbol=symbol, stop_order_id=stop_order_id) 
+                                                    except Exception:
+                                                        pass
+                   
+                            if not tp_found: # No TPs found, so add (this way we kind of avoid re-adding the same TP if price hit and found resistance at and retested it. so we don't TP the same level twice)
+                                # We couldn't find any TPs, let's add the suitable one
+                                # Prepare set_trading_stop arguments to pass to API
+                                set_trading_stop_args = {'symbol': symbol, 'side': side}
+                                
+                                for elem in sorted(default_tp.items(), reverse=False): # Sort Ascending to find the nearest TP level
+                                    tp_price_ratio = elem[0]
+                                    tp_size_ratio = elem[1]
+                                    
+                                    set_trading_stop_args['take_profit'] = round((entry_price - (((tp_price_ratio/100) / leverage) * entry_price)), final_decimals_count)
+                                    set_trading_stop_args['tp_size'] = round(float(size * (tp_size_ratio / 100)), 3)
+                                    
+                                    if last_price > set_trading_stop_args['take_profit'] + (default_tp_tolerance_ratio/100) * (entry_price - set_trading_stop_args['take_profit']):
+                                        try:
+                                            session.set_trading_stop(**set_trading_stop_args)
+                                            log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " SHORT Take-Profit placed: "+str(tp_size_ratio)+"% of Quantity ("+str(set_trading_stop_args['tp_size'])+") @ "+ str(tp_price_ratio) +"% in Profit ("+str(set_trading_stop_args['take_profit'])+")."
+                                            print(log)
+                                            with open("TP.txt", "a") as myfile:
+                                                myfile.write(log+'\n')
+                                            break # No need to add more TPs, we only place 1 TP at a time
+                                        except Exception:
+                                            pass  
                 
             #######################################################
             # Enforce Lock In Profits Stop Loss feature
@@ -676,4 +840,4 @@ if __name__ == "__main__":
                                         except Exception:
                                             pass
                 
-        sleep(1)
+        sleep(0.05)
