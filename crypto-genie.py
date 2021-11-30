@@ -5,6 +5,8 @@ import logging
 from time import sleep
 import time
 from datetime import datetime
+from typing import Union
+from decimal import Decimal
 from pybit import HTTP, WebSocket
 
 ###### Configurations (EDIT)
@@ -84,6 +86,15 @@ default_lock_in_p_sl = {
 #################################################################################################################
 #################################################################################################################
 
+def round_step_size(quantity: Union[float, Decimal], step_size: Union[float, Decimal]) -> float:
+    """Rounds a given quantity to a specific step size
+    :param quantity: required
+    :param step_size: required
+    :return: decimal
+    """
+    precision: int = int(round(-math.log(step_size, 10), 0))
+    return float(round(quantity, precision))
+
 ###### ByBit Base Endpoints (only edit if they don't match the currently published ones by ByBit at: https://bybit-exchange.github.io/docs/linear/#t-websocket
 wsURL_USDT_mainnet = "wss://stream.bybit.com/realtime_private"
 wsURL_USDT_testnet = "wss://stream-testnet.bybit.com/realtime_private"
@@ -107,11 +118,13 @@ if __name__ == "__main__":
     tick_size = {}
     base_currency = {}
     quote_currency = {}
+    qty_step = {}
     symbols = session.query_symbol()["result"]
     for symbol in symbols:
         tick_size[symbol["name"]] = symbol["price_filter"]["tick_size"]
         base_currency[symbol["name"]] = symbol["base_currency"]
         quote_currency[symbol["name"]] = symbol["quote_currency"]
+        qty_step[symbol["name"]] = symbol["lot_size_filter"]["qty_step"]
         
     ''' *** We wil not use WebSockets for now, only REST API due to missing fields in the WebSocket API ***
     ws_USDT = WebSocket(wsURL_USDT, subscriptions=['position'], api_key=api_key, api_secret=api_secret)
@@ -570,7 +583,7 @@ if __name__ == "__main__":
                                                     tp_price_ratio = elem[0]
                                                     tp_size_ratio = elem[1]
                                                     tp_price = round((entry_price + (((tp_price_ratio/100) / leverage) * entry_price)), final_decimals_count)
-                                                    tp_size = round(float(size * (tp_size_ratio / 100)), 3)
+                                                    tp_size = round_step_size(size * (tp_size_ratio / 100),qty_step[symbol])
                                                     if tp_price==stop_price and (tp_size==conditional_order['qty'] or math.floor(tp_size * 10)/10.0==conditional_order['qty'] or math.floor(tp_size * 100)/100.0==conditional_order['qty'] or math.floor(tp_size * 1000)/1000.0==conditional_order['qty'] or math.floor(tp_size * 10000)/10000.0==conditional_order['qty']):
                                                         # We found a valid pre-defined TP, keep it (note we check the floor in case the exchange did remove decimals upon creating the order)
                                                         tp_found = True
@@ -589,7 +602,7 @@ if __name__ == "__main__":
                                                     tp_price_ratio = elem[0]
                                                     tp_size_ratio = elem[1]
                                                     tp_price = round((entry_price + (((tp_price_ratio/100) / leverage) * entry_price)), final_decimals_count)
-                                                    tp_size = round(float(size * (tp_size_ratio / 100)), 3)
+                                                    tp_size = round_step_size(size * (tp_size_ratio / 100),qty_step[symbol])
                                                     if tp_price==stop_price and (tp_size==conditional_order['qty'] or math.floor(tp_size * 10)/10.0==conditional_order['qty'] or math.floor(tp_size * 100)/100.0==conditional_order['qty'] or math.floor(tp_size * 1000)/1000.0==conditional_order['qty'] or math.floor(tp_size * 10000)/10000.0==conditional_order['qty']):
                                                         # We found a valid pre-defined TP, keep it (note we check the floor in case the exchange did remove decimals upon creating the order)
                                                         tp_found = True
@@ -610,7 +623,7 @@ if __name__ == "__main__":
                                     tp_size_ratio = elem[1]
                                     
                                     set_trading_stop_args['take_profit'] = round((entry_price + (((tp_price_ratio/100) / leverage) * entry_price)), final_decimals_count)
-                                    set_trading_stop_args['tp_size'] = round(float(size * (tp_size_ratio / 100)), 3)
+                                    set_trading_stop_args['tp_size'] = tp_size = round_step_size(size * (tp_size_ratio / 100),qty_step[symbol])
                                     
                                     if last_price < set_trading_stop_args['take_profit'] - (default_tp_tolerance_ratio/100) * (set_trading_stop_args['take_profit'] - entry_price):
                                         try:
@@ -644,7 +657,7 @@ if __name__ == "__main__":
                                                     tp_price_ratio = elem[0]
                                                     tp_size_ratio = elem[1]
                                                     tp_price = round((entry_price - (((tp_price_ratio/100) / leverage) * entry_price)), final_decimals_count)
-                                                    tp_size = round(float(size * (tp_size_ratio / 100)), 3)
+                                                    tp_size = round_step_size(size * (tp_size_ratio / 100),qty_step[symbol])
                                                     if tp_price==stop_price and (tp_size==conditional_order['qty'] or math.floor(tp_size * 10)/10.0==conditional_order['qty'] or math.floor(tp_size * 100)/100.0==conditional_order['qty'] or math.floor(tp_size * 1000)/1000.0==conditional_order['qty'] or math.floor(tp_size * 10000)/10000.0==conditional_order['qty']):
                                                         # We found a valid pre-defined TP, keep it (note we check the floor in case the exchange did remove decimals upon creating the order)
                                                         tp_found = True
@@ -663,7 +676,7 @@ if __name__ == "__main__":
                                                     tp_price_ratio = elem[0]
                                                     tp_size_ratio = elem[1]
                                                     tp_price = round((entry_price - (((tp_price_ratio/100) / leverage) * entry_price)), final_decimals_count)
-                                                    tp_size = round(float(size * (tp_size_ratio / 100)), 3)
+                                                    tp_size = round_step_size(size * (tp_size_ratio / 100),qty_step[symbol])
                                                     if tp_price==stop_price and (tp_size==conditional_order['qty'] or math.floor(tp_size * 10)/10.0==conditional_order['qty'] or math.floor(tp_size * 100)/100.0==conditional_order['qty'] or math.floor(tp_size * 1000)/1000.0==conditional_order['qty'] or math.floor(tp_size * 10000)/10000.0==conditional_order['qty']):
                                                         # We found a valid pre-defined TP, keep it (note we check the floor in case the exchange did remove decimals upon creating the order)
                                                         tp_found = True
@@ -684,7 +697,7 @@ if __name__ == "__main__":
                                     tp_size_ratio = elem[1]
                                     
                                     set_trading_stop_args['take_profit'] = round((entry_price - (((tp_price_ratio/100) / leverage) * entry_price)), final_decimals_count)
-                                    set_trading_stop_args['tp_size'] = round(float(size * (tp_size_ratio / 100)), 3)
+                                    set_trading_stop_args['tp_size'] = round_step_size(size * (tp_size_ratio / 100),qty_step[symbol])
                                     
                                     if last_price > set_trading_stop_args['take_profit'] + (default_tp_tolerance_ratio/100) * (entry_price - set_trading_stop_args['take_profit']):
                                         try:
