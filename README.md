@@ -34,6 +34,8 @@ Automated Take Profits Monitor that will ensure specific pre-defined ratios of a
 ### Lock In Profits Monitor
 Automated Lock In Profits Monitor to ensure the Stop Loss moves from Loss to Breakeven or In-Profit to avoid incurring losses once a position satisfies the price level conditions.
 
+NOTE: If you use ratios for any of the features, then you will need to activate "TP/SL on Selected Position" for each Asset on the Exchange, for the Bot to work properly.
+
 ## Demo
 
 [![CryptoGenie Video Demo](https://i.ibb.co/Y2m03CD/You-Tube-Player-Image.png)](https://youtu.be/Alu4FlkTKi4 "CryptoGenie Video Demo")
