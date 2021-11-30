@@ -11,6 +11,8 @@ Always verify any actions taken by these monitors, and manually manage your posi
 
 ## Features
 
+NOTE: If you use ratios for any of the features, then you will need to activate "TP/SL on Selected Position" for each Asset on the Exchange, for the Bot to work properly.
+
 ### Risk Management Monitor
 Automated Risk Management Monitor for cryptocurrencies exchanges that forces all open positions to adhere to specific risk ratios, defined per asset. Simply, it automatically adds/modifies _**Stop Loss(es)**_ for any position created or modified, making sure that the maximum Stop Loss (after leverage, in case of using Margin) does not exceed a specific ratio. It also has an Emergency Enforced Market Stop Loss in case a position is open and the price already broke the allowed Stop Loss range.
 
@@ -33,8 +35,6 @@ Automated Take Profits Monitor that will ensure specific pre-defined ratios of a
 
 ### Lock In Profits Monitor
 Automated Lock In Profits Monitor to ensure the Stop Loss moves from Loss to Breakeven or In-Profit to avoid incurring losses once a position satisfies the price level conditions.
-
-NOTE: If you use ratios for any of the features, then you will need to activate "TP/SL on Selected Position" for each Asset on the Exchange, for the Bot to work properly.
 
 ## Demo
 
