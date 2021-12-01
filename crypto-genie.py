@@ -13,6 +13,7 @@ from pybit import HTTP, WebSocket
 api_key = 'TYPE BYBIT API KEY HERE'
 api_secret = 'TYPE BYBIT API SECRET HERE'
 network = 'mainnet' # Set to 'mainnet' or 'testnet' depending on which Network you want to use (note: usually each network requires separate API credentials)
+log_label = 'YOUR_NAME' # If you have multiple scripts running for different users, this label could be used to identify different ones
 exchange_market_taker_fee = 0.075
 exchange_market_maker_fee = -0.025
 
@@ -23,18 +24,20 @@ enforce_sl_static = False
 default_sl_static_cap_ratio = 20.0
 # Use this to set custom Stop Loss % for specific asset pairs (override the default), you can add more pairs as you desire by adding a comma at the end and a new symbol
 override_sl_static_cap_ratio = {
-  "BTCUSDT": 20.0,
-  "ETHUSDT": 20.0
+  "": 20.0
 }
 
 # Enforce Total Balance Static Stop Loss at an exact ratio (not less not more) feature switch (True/False). Only exception is if position is in profit, it allows moving the SL to breakeven or profit.
 # NOTE: It will always set the Stop Loss with Full (100%) position size.
 enforce_tb_sl_static = True
 # Maximum Stop Loss % allowed (ratio of price difference, after leverage)
-default_tb_sl_static_cap_ratio = 5.0
+default_tb_sl_static_cap_ratio = 2.5
 # Use this to set custom Stop Loss % for specific asset pairs (override the default), you can add more pairs as you desire by adding a comma at the end and a new symbol
 override_tb_sl_static_cap_ratio = {
-  "SOLUSDT": 10.0
+  "BTCUSDT": 5.0,
+  "SOLUSDT": 5.0,
+  "ETHUSDT": 5.0,
+  "XRPUSDT": 5.0
 }
 
 # Enforce Stop Loss Range feature switch (True/False). NOTE: You should only activate either the Static Stop Loss feature or this one, not both, to avoid issues.
@@ -72,7 +75,7 @@ enforce_lock_in_p_sl = True
 # Structure is lock_in_p_price_ratio (after leverage): lock_in_p_sl_ratio
 # NOTE: Order DOES matter. Make sure the order is in Ascending OR Descending on the left and right sides to avoid issues
 default_lock_in_p_sl = {
-    25.0 : 5,
+    25.0 : 5.0,
     50.0 : 15.0,
     100.0 : 40.0,
     150.0 : 70.0,
@@ -194,7 +197,7 @@ if __name__ == "__main__":
             leverage = float(position["leverage"])
             stop_loss = float(position["stop_loss"])
             entry_price = float(position["entry_price"])
-            unrealised_pnl = float(position["unrealised_pnl"])
+            # unrealised_pnl = float(position["unrealised_pnl"]) # We will not use this as the current API is not returning the real-time unrealised_pnl value properly, we will need to manually calculate it for each position
             final_decimals_count = str(tick_size[symbol])[::-1].find('.') - 1 # Tick Size number of decimals - 1
             tp_sl_mode = position["tp_sl_mode"] # "Partial" or "Full" position TP/SL mode [Currently not supported in WebSocket API]
             if "position_idx" in position:
@@ -228,7 +231,7 @@ if __name__ == "__main__":
                             if last_price < position_leveraged_stop_loss:
                                 try:
                                     session.place_active_order(symbol=symbol, side="Sell", order_type="Market", qty=size, time_in_force="GoodTillCancel", reduce_only=True, close_on_trigger=True)
-                                    log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " LONG Force-Stopped: "+str(last_price)+"."
+                                    log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + (log_label + ": " if log_label != "" else "") + symbol + " LONG Force-Stopped: "+str(last_price)+"."
                                     print(log)
                                     with open("SL_forced.txt", "a") as myfile:
                                         myfile.write(log+'\n')
@@ -239,7 +242,7 @@ if __name__ == "__main__":
                             if last_price > position_leveraged_stop_loss:
                                 try:
                                     session.place_active_order(symbol=symbol, side="Buy", order_type="Market", qty=size, time_in_force="GoodTillCancel", reduce_only=True, close_on_trigger=True)
-                                    log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " SHORT Force-Stopped: "+str(last_price)+"."
+                                    log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + (log_label + ": " if log_label != "" else "") + symbol + " SHORT Force-Stopped: "+str(last_price)+"."
                                     print(log)
                                     with open("SL_forced.txt", "a") as myfile:
                                         myfile.write(log+'\n')
@@ -329,7 +332,7 @@ if __name__ == "__main__":
                             try:
                                 set_trading_stop_args['stop_loss'] = position_leveraged_stop_loss
                                 session.set_trading_stop(**set_trading_stop_args)
-                                log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " LONG Maximum Static Stop-Loss adjusted to: "+str(position_leveraged_stop_loss)+" (" + str(stop_loss_cap_ratio) + "%)."
+                                log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + (log_label + ": " if log_label != "" else "") + symbol + " LONG Maximum Static Stop-Loss adjusted to: "+str(position_leveraged_stop_loss)+" (" + str(stop_loss_cap_ratio) + "%)."
                                 print(log)
                                 with open("SL_protected.txt", "a") as myfile:
                                     myfile.write(log+'\n')
@@ -341,7 +344,7 @@ if __name__ == "__main__":
                             try:
                                 set_trading_stop_args['stop_loss'] = position_leveraged_stop_loss
                                 session.set_trading_stop(**set_trading_stop_args)
-                                log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " SHORT Maximum Static Stop-Loss adjusted to: "+str(position_leveraged_stop_loss)+" (" + str(stop_loss_cap_ratio) + "%)."
+                                log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + (log_label + ": " if log_label != "" else "") + symbol + " SHORT Maximum Static Stop-Loss adjusted to: "+str(position_leveraged_stop_loss)+" (" + str(stop_loss_cap_ratio) + "%)."
                                 print(log)
                                 with open("SL_protected.txt", "a") as myfile:
                                     myfile.write(log+'\n')
@@ -369,35 +372,62 @@ if __name__ == "__main__":
                     for ticker in fetched_latest_tickers:
                         if ticker['symbol'] == symbol:
                             last_price = float(ticker['last_price'])
+                            mark_price = float(ticker['mark_price'])
                             
                         # First, fetch Wallet Balance
                         if quote_currency[symbol] == "USDT":
                             wallet_balance = session.get_wallet_balance(coin="USDT")["result"]["USDT"]["wallet_balance"]
-                        else:
-                            wallet_balance = session.get_wallet_balance(coin=base_currency[symbol])["result"][base_currency[symbol]]["wallet_balance"]
-                            
-                        if wallet_balance > 0:
-                            # unrealised_pnl is negative if in loss
-                            if unrealised_pnl <= (-1 * (wallet_balance * stop_loss_cap_ratio/100)):
-                                if side == 'Buy':
+                            if side == 'Buy':
+                                # unrealised_pnl_calculated is negative if in loss
+                                unrealised_pnl_calculated = size * ((mark_price -  entry_price))
+                                if unrealised_pnl_calculated <= (-1 * (wallet_balance * stop_loss_cap_ratio/100)):
                                     try:
                                         session.place_active_order(symbol=symbol, side="Sell", order_type="Market", qty=size, time_in_force="GoodTillCancel", reduce_only=True, close_on_trigger=True)
-                                        log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " LONG Balance Static Force-Stopped with unrealised PnL of "+str(unrealised_pnl)+" at: "+str(last_price)+"."
+                                        log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + (log_label + ": " if log_label != "" else "") + symbol + " LONG Balance Static Force-Stopped with unrealised PnL of "+str(unrealised_pnl_calculated)+" at: "+str(last_price)+"."
                                         print(log)
                                         with open("SL_forced.txt", "a") as myfile:
                                             myfile.write(log+'\n')
                                     except Exception:
                                         pass
-                                elif side == 'Sell':
+                            elif side == 'Sell':
+                                # unrealised_pnl_calculated is negative if in loss
+                                unrealised_pnl_calculated = size * ((entry_price -  mark_price))
+                                if unrealised_pnl_calculated <= (-1 * (wallet_balance * stop_loss_cap_ratio/100)):
                                     try:
                                         session.place_active_order(symbol=symbol, side="Buy", order_type="Market", qty=size, time_in_force="GoodTillCancel", reduce_only=True, close_on_trigger=True)
-                                        log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " SHORT Balance Static Force-Stopped with unrealised PnL of "+str(unrealised_pnl)+" at: "+str(last_price)+"."
+                                        log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + (log_label + ": " if log_label != "" else "") + symbol + " SHORT Balance Static Force-Stopped with unrealised PnL of "+str(unrealised_pnl_calculated)+" at: "+str(last_price)+"."
                                         print(log)
                                         with open("SL_forced.txt", "a") as myfile:
                                             myfile.write(log+'\n')
                                     except Exception:
                                         pass
-                                
+                        else:
+                            wallet_balance = session.get_wallet_balance(coin=base_currency[symbol])["result"][base_currency[symbol]]["wallet_balance"]
+                            if side == 'Buy':
+                                # unrealised_pnl_calculated is negative if in loss
+                                unrealised_pnl_calculated = size * (((1.0/entry_price) -  (1.0/mark_price)))
+                                if unrealised_pnl_calculated <= (-1 * (wallet_balance * stop_loss_cap_ratio/100)):
+                                    try:
+                                        session.place_active_order(symbol=symbol, side="Sell", order_type="Market", qty=size, time_in_force="GoodTillCancel", reduce_only=True, close_on_trigger=True)
+                                        log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + (log_label + ": " if log_label != "" else "") + symbol + " LONG Balance Static Force-Stopped with unrealised PnL of "+str(unrealised_pnl_calculated)+" at: "+str(last_price)+"."
+                                        print(log)
+                                        with open("SL_forced.txt", "a") as myfile:
+                                            myfile.write(log+'\n')
+                                    except Exception:
+                                        pass
+                            elif side == 'Sell':
+                                # unrealised_pnl_calculated is negative if in loss
+                                unrealised_pnl_calculated = size * (((1.0/mark_price) -  (1.0/entry_price)))
+                                if unrealised_pnl_calculated <= (-1 * (wallet_balance * stop_loss_cap_ratio/100)):
+                                    try:
+                                        session.place_active_order(symbol=symbol, side="Buy", order_type="Market", qty=size, time_in_force="GoodTillCancel", reduce_only=True, close_on_trigger=True)
+                                        log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + (log_label + ": " if log_label != "" else "") + symbol + " SHORT Balance Static Force-Stopped with unrealised PnL of "+str(unrealised_pnl_calculated)+" at: "+str(last_price)+"."
+                                        print(log)
+                                        with open("SL_forced.txt", "a") as myfile:
+                                            myfile.write(log+'\n')
+                                    except Exception:
+                                        pass
+
                                 
             #######################################################
             # Enforce Stop Loss Range feature
@@ -425,7 +455,7 @@ if __name__ == "__main__":
                             if last_price < position_leveraged_stop_loss:
                                 try:
                                     session.place_active_order(symbol=symbol, side="Sell", order_type="Market", qty=size, time_in_force="GoodTillCancel", reduce_only=True, close_on_trigger=True)
-                                    log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " LONG Force-Stopped: "+str(last_price)+"."
+                                    log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + (log_label + ": " if log_label != "" else "") + symbol + " LONG Force-Stopped: "+str(last_price)+"."
                                     print(log)
                                     with open("SL_forced.txt", "a") as myfile:
                                         myfile.write(log+'\n')
@@ -436,7 +466,7 @@ if __name__ == "__main__":
                             if last_price > position_leveraged_stop_loss:
                                 try:
                                     session.place_active_order(symbol=symbol, side="Buy", order_type="Market", qty=size, time_in_force="GoodTillCancel", reduce_only=True, close_on_trigger=True)
-                                    log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " SHORT Force-Stopped: "+str(last_price)+"."
+                                    log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + (log_label + ": " if log_label != "" else "") + symbol + " SHORT Force-Stopped: "+str(last_price)+"."
                                     print(log)
                                     with open("SL_forced.txt", "a") as myfile:
                                         myfile.write(log+'\n')
@@ -527,7 +557,7 @@ if __name__ == "__main__":
                                 #session.place_conditional_order(symbol=symbol, order_type="Market", reduce_only=True, side= "Sell", qty=size, stop_px=position_leveraged_stop_loss,time_in_force="GoodTillCancel")
                                 set_trading_stop_args['stop_loss'] = position_leveraged_stop_loss
                                 session.set_trading_stop(**set_trading_stop_args)
-                                log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " LONG Maximum Stop-Loss adjusted to: "+str(position_leveraged_stop_loss)+" (" + str(stop_loss_cap_ratio) + "%)."
+                                log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + (log_label + ": " if log_label != "" else "") + symbol + " LONG Maximum Stop-Loss adjusted to: "+str(position_leveraged_stop_loss)+" (" + str(stop_loss_cap_ratio) + "%)."
                                 print(log)
                                 with open("SL_protected.txt", "a") as myfile:
                                     myfile.write(log+'\n')
@@ -540,7 +570,7 @@ if __name__ == "__main__":
                                 #session.place_conditional_order(symbol=symbol, order_type="Market", reduce_only=True, side= "Buy", qty=size, stop_px=position_leveraged_stop_loss,time_in_force="GoodTillCancel")
                                 set_trading_stop_args['stop_loss'] = position_leveraged_stop_loss
                                 session.set_trading_stop(**set_trading_stop_args)
-                                log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " SHORT Maximum Stop-Loss adjusted to: "+str(position_leveraged_stop_loss)+" (" + str(stop_loss_cap_ratio) + "%)."
+                                log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + (log_label + ": " if log_label != "" else "") + symbol + " SHORT Maximum Stop-Loss adjusted to: "+str(position_leveraged_stop_loss)+" (" + str(stop_loss_cap_ratio) + "%)."
                                 print(log)
                                 with open("SL_protected.txt", "a") as myfile:
                                     myfile.write(log+'\n')
@@ -596,7 +626,7 @@ if __name__ == "__main__":
                                         else: # Inverse Perpetuals or Futures
                                             stop_price = float(conditional_order['stop_px'])
                                             stop_order_id = conditional_order['order_id']
-                                            if conditional_order['side'] == 'Sell' and stop_price > last_price and stop_price > entry_price and conditional_order['close_on_trigger'] == True and conditional_order['reduce_only'] == True:
+                                            if conditional_order['side'] == 'Sell' and stop_price > last_price and stop_price > entry_price:
                                                 # Take Profit found, make sure it is one of the pre-defined ones and make sure its quantity is up to date as well
                                                 for elem in default_tp.items():
                                                     tp_price_ratio = elem[0]
@@ -628,7 +658,7 @@ if __name__ == "__main__":
                                     if last_price < set_trading_stop_args['take_profit'] - (default_tp_tolerance_ratio/100) * (set_trading_stop_args['take_profit'] - entry_price):
                                         try:
                                             session.set_trading_stop(**set_trading_stop_args)
-                                            log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " LONG Take-Profit placed: "+str(tp_size_ratio)+"% of Quantity ("+str(set_trading_stop_args['tp_size'])+") @ "+ str(tp_price_ratio) +"% in Profit ("+str(set_trading_stop_args['take_profit'])+")."
+                                            log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + (log_label + ": " if log_label != "" else "") + symbol + " LONG Take-Profit placed: "+str(tp_size_ratio)+"% of Quantity ("+str(set_trading_stop_args['tp_size'])+") @ "+ str(tp_price_ratio) +"% in Profit ("+str(set_trading_stop_args['take_profit'])+")."
                                             print(log)
                                             with open("TP.txt", "a") as myfile:
                                                 myfile.write(log+'\n')
@@ -670,7 +700,7 @@ if __name__ == "__main__":
                                         else: # Inverse Perpetuals or Futures
                                             stop_price = float(conditional_order['stop_px'])
                                             stop_order_id = conditional_order['order_id']
-                                            if conditional_order['side'] == 'Buy' and stop_price < last_price and stop_price < entry_price and conditional_order['close_on_trigger'] == True and conditional_order['reduce_only'] == True:
+                                            if conditional_order['side'] == 'Buy' and stop_price < last_price and stop_price < entry_price:
                                                 # Take Profit found, make sure it is one of the pre-defined ones and make sure its quantity is up to date as well
                                                 for elem in default_tp.items():
                                                     tp_price_ratio = elem[0]
@@ -702,7 +732,7 @@ if __name__ == "__main__":
                                     if last_price > set_trading_stop_args['take_profit'] + (default_tp_tolerance_ratio/100) * (entry_price - set_trading_stop_args['take_profit']):
                                         try:
                                             session.set_trading_stop(**set_trading_stop_args)
-                                            log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " SHORT Take-Profit placed: "+str(tp_size_ratio)+"% of Quantity ("+str(set_trading_stop_args['tp_size'])+") @ "+ str(tp_price_ratio) +"% in Profit ("+str(set_trading_stop_args['take_profit'])+")."
+                                            log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + (log_label + ": " if log_label != "" else "") + symbol + " SHORT Take-Profit placed: "+str(tp_size_ratio)+"% of Quantity ("+str(set_trading_stop_args['tp_size'])+") @ "+ str(tp_price_ratio) +"% in Profit ("+str(set_trading_stop_args['take_profit'])+")."
                                             print(log)
                                             with open("TP.txt", "a") as myfile:
                                                 myfile.write(log+'\n')
@@ -782,7 +812,7 @@ if __name__ == "__main__":
                                             #session.place_conditional_order(symbol=symbol, order_type="Market", reduce_only=True, side= "Sell", qty=size, stop_px=position_leveraged_p_level,time_in_force="GoodTillCancel")
                                             set_trading_stop_args['stop_loss'] = position_leveraged_p_sl_level
                                             session.set_trading_stop(**set_trading_stop_args)
-                                            log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " LONG Stop-Loss adjusted IN PROFIT to: "+str(position_leveraged_p_sl_level)+" (" + str(lock_in_p_sl_ratio) + "%) after hitting "+ str(position_leveraged_p_level) +" (" + str(lock_in_p_price_ratio) + "% profit level)."
+                                            log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + (log_label + ": " if log_label != "" else "") + symbol + " LONG Stop-Loss adjusted IN PROFIT to: "+str(position_leveraged_p_sl_level)+" (" + str(lock_in_p_sl_ratio) + "%) after hitting "+ str(position_leveraged_p_level) +" (" + str(lock_in_p_price_ratio) + "% profit level)."
                                             print(log)
                                             with open("P_protected.txt", "a") as myfile:
                                                 myfile.write(log+'\n')
@@ -845,7 +875,7 @@ if __name__ == "__main__":
                                             #session.place_conditional_order(symbol=symbol, order_type="Market", reduce_only=True, side= "Buy", qty=size, stop_px=position_leveraged_p_level,time_in_force="GoodTillCancel")
                                             set_trading_stop_args['stop_loss'] = position_leveraged_p_sl_level
                                             session.set_trading_stop(**set_trading_stop_args)
-                                            log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + symbol + " SHORT Stop-Loss adjusted IN PROFIT to: "+str(position_leveraged_p_sl_level)+" (" + str(lock_in_p_sl_ratio) + "%) after hitting "+ str(position_leveraged_p_level) +" (" + str(lock_in_p_price_ratio) + "% profit level)."
+                                            log = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + (log_label + ": " if log_label != "" else "") + symbol + " SHORT Stop-Loss adjusted IN PROFIT to: "+str(position_leveraged_p_sl_level)+" (" + str(lock_in_p_sl_ratio) + "%) after hitting "+ str(position_leveraged_p_level) +" (" + str(lock_in_p_price_ratio) + "% profit level)."
                                             print(log)
                                             with open("P_protected.txt", "a") as myfile:
                                                 myfile.write(log+'\n')
@@ -853,4 +883,4 @@ if __name__ == "__main__":
                                         except Exception:
                                             pass
                 
-        sleep(0.05)
+        sleep(0.5)
