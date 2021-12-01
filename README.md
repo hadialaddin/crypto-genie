@@ -43,7 +43,7 @@ Automated Lock In Profits Monitor to ensure the Stop Loss moves from Loss to Bre
 
 - Video 1: [https://youtu.be/Alu4FlkTKi4](https://youtu.be/Alu4FlkTKi4)
 - Video 2: [https://youtu.be/r0wvB_O3wjk](https://youtu.be/r0wvB_O3wjk)
-- VIdeo 3: [https://youtu.be/8kN0qsg9JcA](https://youtu.be/8kN0qsg9JcA)
+- Video 3: [https://youtu.be/8kN0qsg9JcA](https://youtu.be/8kN0qsg9JcA)
 - Video 4: [https://youtu.be/yhkY9F-Py1o](https://youtu.be/yhkY9F-Py1o)
 
 ## Installation
