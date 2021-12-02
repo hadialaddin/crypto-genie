@@ -19,7 +19,7 @@ exchange_market_maker_fee = -0.025
 
 # Enforce Static Stop Loss at an exact ratio (not less not more) feature switch (True/False). Only exception is if position is in profit, it allows moving the SL to breakeven or profit.
 # NOTE: It will always set the Stop Loss with Full (100%) position size. Set to "0.0" if you want to disable the feature for a specific asset in case the default is setup.
-enforce_sl_static = True
+enforce_sl_static = False
 # Maximum Stop Loss % allowed (ratio of price difference, after leverage)
 default_sl_static_cap_ratio = 15.0
 # Use this to set custom Stop Loss % for specific asset pairs (override the default), you can add more pairs as you desire by adding a comma at the end and a new symbol
@@ -45,12 +45,15 @@ override_tb_sl_static_cap_ratio = {
 
 # Enforce Stop Loss Range feature switch (True/False). NOTE: You should only activate either the Static Stop Loss feature or this one, not both, to avoid issues.
 # NOTE: It will always set the Stop Loss with Full (100%) position size.  Set to "0.0" if you want to disable the feature for a specific asset in case the default is setup. If "Tp/SL on Selected Position" is used on the exchange, it will make sure to set 100% as well (it will add the remaining of the Stop Losses needed to fully Stop the position)
-enforce_sl_range = False
+enforce_sl_range = True
 # Maximum Stop Loss % allowed (ratio of price difference, after leverage)
-default_sl_range_cap_ratio = 20.0
+default_sl_range_cap_ratio = 15.0
 # Use this to set custom Stop Loss % for specific asset pairs (override the default), you can add more pairs as you desire by adding a comma at the end and a new symbol
 override_sl_range_cap_ratio = {
-  "": 20.0,
+  "BTCUSDT": 0.0,
+  "SOLUSDT": 10.0,
+  "ETHUSDT": 10.0,
+  "XRPUSDT": 10.0
 }
 
 # Enforce Take Profits feature switch (True/False)
