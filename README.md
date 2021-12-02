@@ -7,7 +7,9 @@ Social Media: @hadialaddin
 Suite of Automated Monitors (Bots) to empower Day Traders and enable them to stick to their Trade Plans — Risk:Reward ratios.
 Althoguh designed to automate most of the Risk:Reward aspects of day trading, this suite of tools acts as an assistant instead of auto-pilot.
 
-Always verify any actions taken by these monitors, and manually manage your positions. Use at your own risk!
+## Disclaimer
+
+This software is for educational purposes only. Do not risk money which you are afraid to lose. USE THE SOFTWARE AT YOUR OWN RISK. THE AUTHORS AND ALL AFFILIATES ASSUME NO RESPONSIBILITY FOR YOUR TRADING RESULTS. Always verify any actions taken by the bot.
 
 ## Features
 
