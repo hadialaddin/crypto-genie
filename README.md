@@ -1,4 +1,4 @@
-Authors: Hadi Aladdin ([https://linktr.ee/hadialaddin](https://linktr.ee/hadialaddin))
+Author: Hadi Aladdin ([https://linktr.ee/hadialaddin](https://linktr.ee/hadialaddin))
 
 Social Media: @hadialaddin
 
@@ -9,7 +9,7 @@ Althoguh designed to automate most of the Risk:Reward aspects of day trading, th
 
 ## Disclaimer
 
-This software is for educational purposes only. Do not risk money which you are afraid to lose. USE THE SOFTWARE AT YOUR OWN RISK. THE AUTHORS AND ALL AFFILIATES ASSUME NO RESPONSIBILITY FOR YOUR TRADING RESULTS. Always verify any actions taken by the bot.
+This software is for educational purposes only. Do not risk money which you are afraid to lose. USE THE SOFTWARE AT YOUR OWN RISK. THE AUTHOR AND ALL AFFILIATES ASSUME NO RESPONSIBILITY FOR YOUR TRADING RESULTS. Always verify any actions taken by the bot.
 
 ## Features
 
