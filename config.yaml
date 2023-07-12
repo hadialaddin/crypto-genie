@@ -1,0 +1,290 @@
+---
+# MySQL Database
+enable_db_features: True
+db_host: 'MYSQL DB HOST HERE'
+db_username: 'MYSQL DB USERNAME HERE'
+db_password: 'MYSQL DB PASSWORD HERE'
+db_name: 'MYSQL DB NAME HERE'
+
+# ByBit Exchange API
+api_key: 'YOUR API KEY HERE'
+api_secret: 'YOUR API SECRET HERE'
+network: 'mainnet' # Set to 'mainnet' or 'testnet' depending on which Network you want to use (note: usually each network requires separate API credentials)
+log_label: 'YOUR NAME HERE' # If you have multiple scripts running for different users, this label could be used to identify different ones
+exchange_market_taker_fee: 0.075
+exchange_market_maker_fee: -0.025
+wait_time: 1
+recv_window: 15000
+
+# Enforce Static Stop Loss at an exact ratio (not less not more) feature switch (True/False). Only exception is if position is in profit, it allows moving the SL to breakeven or profit.
+# NOTE: It will always set the Stop Loss with Full (100%) position size. Set to "0.0" if you want to disable the feature for a specific asset in case the default is setup.
+enforce_sl_static: False
+# Maximum Stop Loss % allowed (ratio of price difference, after leverage)
+default_sl_static_cap_ratio: 15.0
+# Use this to set custom Stop Loss % for specific asset pairs (override the default), you can add more pairs as you desire by adding a comma at the end and a new symbol
+override_sl_static_cap_ratio:
+#  "BTCUSDT": 20.0
+#  "SOLUSDT": 20.0
+#  "ETHUSDT": 20.0
+#  "XRPUSDT": 20.0
+
+# Enforce Total Balance Static Stop Loss feature switch (True/False).
+enforce_tb_sl_static: False
+# If set to True, this executes the Total Balance stop as emergency Market order. If False, it will only rely on the Stop Loss being added on the chart
+enforce_tb_sl_static_emergency_exit: True
+# If set to True, Stop Loss is allowed to move closer (within the range). If set to False then the Stop Loss must be kept at its exact location and will be reset if position size is reduced as it affects the ratio from the total balance then.
+enforce_tb_sl_static_range: True
+# If set to True, any position can't lose more than the set TB ratio by monitoring the Cumulative ralised PnL. This enforces a maximum loss no matter what, even if you partially close from the position.
+enforce_tb_sl_max_cum_loss: True
+# If set to True, Stop Loss price is stored in the Database to prevent moving it away in case of partially closing (in loss or profit). This prevents increasing the loss by the habbit of adding into the position before it hits the Stop Loss (to move it further away).
+enforce_tb_sl_db_stored: False
+# Initial Stop Loss % to do as a Market Order (ratio of total balance loss to execute stop loss at initially, helpful if you want to reduce risk quickly and make position size smaller quick)
+default_tb_initial_sl_static_cap_ratio: 0.0
+# Initial Size of the Stop loss (how much of the position size to close for that initial Stop Loss)
+default_tb_initial_sl_static_pos_size_ratio: 0.0
+# Maximum Stop Loss % allowed (ratio of total balance loss to execute stop loss at)
+default_tb_sl_static_cap_ratio: 1.0
+# Size of the Maximum Stop loss (how much of the position size to close at max)
+default_tb_sl_static_pos_size_ratio: 100.0
+# Use this to set custom Stop Loss % for specific asset pairs (override the default), you can add more pairs as you desire by adding a comma at the end and a new symbol
+override_tb_sl_static:
+  "ETHUSDT":
+      tb_initial_sl_static_cap_ratio: 0.0
+      tb_initial_sl_static_pos_size_ratio: 0.0
+      tb_sl_static_cap_ratio: 1.0
+      tb_sl_static_pos_size_ratio: 100.0
+  "BTCUSDT":
+      tb_initial_sl_static_cap_ratio: 0.0
+      tb_initial_sl_static_pos_size_ratio: 0.0
+      tb_sl_static_cap_ratio: 1.0
+      tb_sl_static_pos_size_ratio: 100.0
+
+# Enforce Total Balance Hedge feature switch (True/False).
+enforce_tb_hedge: False
+# Maximum Loss % allowed before opening a Hedge (ratio of total balance loss to execute Hedge at)
+default_tb_hedge_cap_ratio: 0.0
+# Size of the Maximum Hedge (how much of the position size to open a hedge position with)
+default_tb_hedge_pos_size_ratio: 0.0
+# Maximum Loss % allowed before opening a Hedge Balancer forced even if a hedge exists already (ratio of total balance loss to execute Hedge at)
+default_tb_hedge_balancer_cap_ratio: 0.0
+# Maximum Stop Loss % allowed (ratio of total balance loss to execute stop loss at) when a Hedging Session reaches that accumulated loss
+default_tb_hedge_sl_static_cap_ratio: 5.0
+# Use this to set custom Stop Loss % for specific asset pairs (override the default), you can add more pairs as you desire by adding a comma at the end and a new symbol
+override_tb_hedge:
+  "ETHUSDT":
+      tb_hedge_cap_ratio: 0.0
+      tb_hedge_pos_size_ratio: 0.0
+      tb_hedge_balancer_cap_ratio: 0.0
+      tb_hedge_sl_static_cap_ratio: 5.0
+
+# Enforce Stop Loss Range feature switch (True/False). NOTE: You should only activate either the Static Stop Loss feature or this one, not both, to avoid issues.
+# NOTE: It will always set the Stop Loss with Full (100%) position size.  Set to "0.0" if you want to disable the feature for a specific asset in case the default is setup. If "Tp/SL on Selected Position" is used on the exchange, it will make sure to set 100% as well
+enforce_sl_range: False
+# Maximum Stop Loss % allowed (ratio of price difference, after leverage)
+default_sl_range_cap_ratio: 20.0
+# Use this to set custom Stop Loss % for specific asset pairs (override the default), you can add more pairs as you desire by adding a comma at the end and a new symbol
+override_sl_range_cap_ratio:
+  "BTCUSDT": 20.0
+
+# Enforce Take Profits feature switch (True/False)
+# NOTE: Take profits are executed automatically as Market Orders at the price levels defined, and the quantity is calculated in real-time at the time of execution based on the position's size.
+enforce_tp: False
+# Tolerance ratio: good practice to add tolerance ratio which is how far away from the target the Bot would consider the level invalid and target the next level. This is a ratio of the ratio being targetted (eg. 1% tolerance means 1% of the distance between the Position Entry Price and the target Take Profit Level, post leverage)
+default_tp_tolerance_ratio: 0.1
+enforce_tp_limit: False # variation of enforce_tp that uses limit orders instead -- only one of them should be true
+
+# Structure is tp_price_ratio (after leverage) : tp_size_ratio WHERE tp_size_ratio <= 100 (quantity ratio of the position to close)
+# NOTE: Order DOES NOT matter
+default_tp:
+    30.0 : 100.0
+
+# Enforce Lock In Profits Stop Loss feature switch (True/False)
+# IMPORTANT NOTE: This feature will make sure to place a 100% Stop Loss at the desired levels and move it as needed, to fully close the position in profit.
+enforce_lock_in_p_sl: False
+# Default Lock In Profits Stop Loss levels (when price level ratio is hit, position's SL moved to defined price ratio). Note it is a Hard SL meaning you can't loose once you hit those profit levels.
+# Structure is lock_in_p_price_ratio (after leverage): lock_in_p_sl_ratio
+# NOTE: Order DOES matter. Make sure the order is in Ascending OR Descending on the left and right sides to avoid issues
+default_lock_in_p_sl:
+    1.0 : -10.0
+    2.0 : -5.0
+    3.0 : 1.0
+
+# Enforce Database Exit Strategies feature switch (True/False)
+enforce_db_exit_strategies: True
+
+# Enforce Take Profits at Dynamic Levels feature switch (True/False)
+# NOTE: For now the full position will be closed.
+#       
+enforce_tp_dynamic: False
+# Structure is interval (in minutes for the timeframe) : indicator1_length1#ordertype,indicator2_length2#ordertype WHERE 'indicator' is from Pandas TA library and 'length' is the value to pass as length to the indicator, followed by '#' and then Order Type as 'Market' or 'Limit', and you separate the indicators with commands if you want multiple ones for the same timeframe.
+# NOTE: For now the FULL position will be closed, and you can only have ONE 'Limit'
+
+# Structure is the symbol to monitor and take profits on, and:
+# 'indicators' dictionary of it has a structure -> interval (in minutes for the timeframe): indicator1_length1#ordertype,indicator2_length2#ordertype WHERE 'indicator' is from Pandas TA library and 'length' is the value to pass as length to the indicator, followed by '#' and then Order Type as 'Market' or 'Limit', and you separate the indicators with commands if you want multiple ones for the same timeframe.
+# 'maximum_ratio' is the Maximum price difference ratio (%) to place Limit Close Order at if no dynamic level found or if the dynamic level is greater than this value
+# 'minimum_ratio' is the Minimum price difference ratio (%) to place Limit Close Order at (any limit orders less than the minimum will be ignored)
+# 'tolerance_ratio' is the ratio of how close the price is from the dynamic level to execute (NOTE: this is price difference ratio without leverage)
+tp_dynamic:
+    "BTCUSDT":
+      indicators:
+        240 : 'bbands_20#Limit'
+      maximum_ratio: 0.2
+      minimum_ratio: 0
+      tolerance_ratio: 0.01
+    "ETHUSDT":
+      indicators:
+        240 : 'bbands_20#Limit'
+      maximum_ratio: 0.2
+      minimum_ratio: 0
+      tolerance_ratio: 0.01
+    "SOLUSDT":
+      indicators:
+        240 : 'bbands_20#Limit'
+      maximum_ratio: 1.4
+      minimum_ratio: 0
+      tolerance_ratio: 0.01
+    "XRPUSDT":
+      indicators:
+        240 : 'bbands_20#Limit'
+      maximum_ratio: 0.4
+      minimum_ratio: 0
+      tolerance_ratio: 0.01
+    "ADAUSDT":
+      indicators:
+        240 : 'bbands_20#Limit'
+      maximum_ratio: 0.4
+      minimum_ratio: 0
+      tolerance_ratio: 0.01
+    "EOSUSDT":
+      indicators:
+        240 : 'bbands_20#Limit'
+      maximum_ratio: 0.4
+      minimum_ratio: 0
+      tolerance_ratio: 0.01
+    "DOTUSDT":
+      indicators:
+        240 : 'bbands_20#Limit'
+      maximum_ratio: 0.4
+      minimum_ratio: 0
+      tolerance_ratio: 0.01
+    "FTMUSDT":
+      indicators:
+        240 : 'bbands_20#Limit'
+      maximum_ratio: 0.4
+      minimum_ratio: 0
+      tolerance_ratio: 0.01
+    "ATOMUSDT":
+      indicators:
+        240 : 'bbands_20#Limit'
+      maximum_ratio: 0.4
+      minimum_ratio: 0
+      tolerance_ratio: 0.01
+    "MATICUSDT":
+      indicators:
+        240 : 'bbands_20#Limit'
+      maximum_ratio: 0.4
+      minimum_ratio: 0
+      tolerance_ratio: 0.01
+    "SHIB1000USDT":
+      indicators:
+        240 : 'bbands_20#Limit'
+      maximum_ratio: 0.4
+      minimum_ratio: 0
+      tolerance_ratio: 0.01
+    "NEARUSDT":
+      indicators:
+        240 : 'bbands_20#Limit'
+      maximum_ratio: 0.4
+      minimum_ratio: 0
+      tolerance_ratio: 0.01
+    "LUNAUSDT":
+      indicators:
+        240 : 'bbands_20#Limit'
+      maximum_ratio: 0.4
+      minimum_ratio: 0
+      tolerance_ratio: 0.01
+    "SANDUSDT":
+      indicators:
+        240 : 'bbands_20#Limit'
+      maximum_ratio: 0.4
+      minimum_ratio: 0
+      tolerance_ratio: 0.01
+    "AVAXUSDT":
+      indicators:
+        240 : 'bbands_20#Limit'
+      maximum_ratio: 0.4
+      minimum_ratio: 0
+      tolerance_ratio: 0.01
+    "ICPUSDT":
+      indicators:
+        240 : 'bbands_20#Limit'
+      maximum_ratio: 0.4
+      minimum_ratio: 0
+      tolerance_ratio: 0.01
+    "GALAUSDT":
+      indicators:
+        240 : 'bbands_20#Limit'
+      maximum_ratio: 0.4
+      minimum_ratio: 0
+      tolerance_ratio: 0.01
+    "AXSUSDT":
+      indicators:
+        240 : 'bbands_20#Limit'
+      maximum_ratio: 0.4
+      minimum_ratio: 0
+      tolerance_ratio: 0.01
+      
+# Enforce Smart Dynamic Entries using Crypto Genie's smart algorithm feature switch (True/False)
+# NOTE: This feature requires MySQL DB enabled as well
+enforce_smart_dynamic_entries: False
+# Structure is the symbol to monitor and take smart entries on, and the dictionary of it has a structure -> interval (in minutes for the timeframe) : indicator_length#ordertype WHERE 'indicator' is from Pandas TA library and 'length' is the value to pass as length to the indicator, followed by '#' and then Order Type as 'Market' or 'Limit' (Limits are done using Chasing orders.
+smart_dynamic_entries:
+    "BTCUSDT":
+      5 : 'ema_50#Limit'
+    "SOLUSDT":
+      60 : 'ema_50#Limit'
+    "XRPUSDT":
+      60 : 'ema_50#Limit'
+    "ADAUSDT":
+      60 : 'ema_50#Limit'
+    "EOSUSDT":
+      60 : 'ema_50#Limit'
+    "DOTUSDT":
+      240 : 'ema_50#Limit'
+    "MATICUSDT":
+      240 : 'ema_50#Limit'
+    "SHIB1000USDT":
+      240 : 'ema_50#Limit'
+    "LUNAUSDT":
+      240 : 'ema_50#Limit'
+      
+default_smart_dynamic_entries_wallet_balance_order_ratio: 0.01 # Minimum Ratio of Wallet Balance per Order (it will be scaled automatically as needed)
+default_smart_dynamic_entries_minimum_average_distance_multiplier: 0.5 # Minimum multiplier of price distance ratio average from the tracked indicator
+default_smart_dynamic_entries_price_chaser_minimum_ticks: 8 # Minimum amount of ticks between current price and chaser Limit Order entry
+
+# NOTE: The smart algorithm needs to calculate the Genie Index: Relative Average Distance which is RSI of the price difference ratio away from the indicator to decide if we are relatively extended away from it on average to take action).
+# The higher this number, the more conservative entries you get
+default_smart_dynamic_entries_rsi_length: 13
+
+# Entries will be taken based on the value of the Genie Index, while monitoring the total Effective Leverage used so far.
+# The way it works is we will keep buying 1/10 of total wallet balance orders, while the Genie Index value is within specific ranges, but we will stop doing so
+# if the reached position Effective Leverage used to the Max allowed leverage:
+#     Level #: Genie Index (from-to) -> Max Leverage Allowed
+# NOTE: If no position is open, it will start one.
+# Effective Leverage equation explained here: https://help.bybit.com/hc/en-us/articles/360039749733-What-is-Isolated-Margin-Cross-Margin-
+# TODO: NOTE: In Isolated Margin, the Effective Margin is used as a ratio of how much used of the total balance, where 1 represents 100%. So we need to buy based on that ratio not to reach specific threshold
+
+default_smart_dynamic_entries_level_1_from: 50
+default_smart_dynamic_entries_level_1_to: 62
+default_smart_dynamic_entries_level_1_max_effective_leverage: 0.1
+
+default_smart_dynamic_entries_level_2_from: 62
+default_smart_dynamic_entries_level_2_to: 70
+default_smart_dynamic_entries_level_2_max_effective_leverage: 0.2
+
+default_smart_dynamic_entries_level_3_from: 70
+default_smart_dynamic_entries_level_3_to: 85
+default_smart_dynamic_entries_level_3_max_effective_leverage: 0.3
+
+default_smart_dynamic_entries_level_4_from: 85
+default_smart_dynamic_entries_level_4_max_effective_leverage: 0.5

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>TradingView Charting Library Featuresets</title><!-- Fix for iOS Safari zooming bug -->
+	<meta content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0" name="viewport">
+	<meta content="IE=Edge" http-equiv="X-UA-Compatible">
+	<script src="charting_library/charting_library.standalone.js" type="text/javascript">
+	</script>
+	<script src="datafeeds/udf/dist/bundle.js" type="text/javascript">
+	</script>
+	<script type="text/javascript">
+
+		function getParameterByName(name) {
+			name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+			var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+				results = regex.exec(location.search);
+			return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+		}
+
+		var featuresets = [
+			{
+				title: 'header_symbol_search[on]',
+				nodeIdOrDataname: 'header-toolbar-symbol-search',
+			},
+			{
+				title: 'header_chart_type[on]',
+				nodeIdOrDataname: 'header-toolbar-chart-styles',
+			},
+			{
+				title: 'header_compare[on]',
+				nodeIdOrDataname: 'header-toolbar-compare',
+			},
+			{
+				title: 'header_undo_redo[on]',
+				nodeIdOrDataname: 'header-toolbar-undo-redo',
+			},
+			{
+				title: 'header_saveload[on]',
+				nodeIdOrDataname: 'header-toolbar-save-load',
+			},
+			{
+				title: 'header_settings[on]',
+				nodeIdOrDataname: 'header-toolbar-properties',
+			},
+			{
+				title: 'header_fullscreen_button[on]',
+				nodeIdOrDataname: 'header-toolbar-fullscreen',
+			},
+			{
+				title: 'header_screenshot[on]',
+				nodeIdOrDataname: 'header-toolbar-screenshot',
+			},
+			{
+				title: 'header_resolutions[on]',
+				nodeIdOrDataname: 'header-toolbar-intervals',
+			},
+			{
+				title: 'header_indicators[on]',
+				nodeIdOrDataname: 'header-toolbar-indicators',
+			},
+			{
+				title: 'left_toolbar[on]',
+				nodeIdOrDataname: 'drawing-toolbar',
+			},
+			{
+				title: 'timezone_menu[on]',
+				nodeIdOrDataname: 'time-zone-menu',
+			},
+			{
+				title: 'go_to_date[on]',
+				nodeIdOrDataname: 'go-to-date',
+			},
+			{
+				title: 'timeframes_toolbar[on]',
+				nodeIdOrDataname: 'date-ranges-tabs',
+			},
+			{
+				title: 'display_market_status[on]',
+				nodeIdOrDataname: 'market-status',
+			},
+		];
+
+		function initOnReady() {
+			var widget = window.tvWidget = new TradingView.widget({
+				// debug: true, // uncomment this line to see Library errors and warnings in the console
+				fullscreen: true,
+				symbol: 'AAPL',
+				interval: '1D',
+				container: "tv_chart_container",
+
+				//  BEWARE: no trailing slash is expected in feed URL
+				datafeed: new Datafeeds.UDFCompatibleDatafeed("https://demo-feed-data.tradingview.com"),
+				library_path: "charting_library/",
+				locale: getParameterByName('lang') || "en",
+
+				disabled_features: ["use_localstorage_for_settings"],
+				enabled_features: ["study_templates"],
+				charts_storage_url: 'https://saveload.tradingview.com',
+				charts_storage_api_version: "1.1",
+				client_id: 'tradingview.com',
+				user_id: 'public_user_id',
+				theme: getParameterByName('theme'),
+				custom_css_url: '../featuresets.css',
+			});
+
+			widget.onChartReady(function () {
+				widget.headerReady().then(function () {
+					var chartContainer = document.getElementById('tv_chart_container');
+					var iframe = chartContainer.firstChild;
+					var innerDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+					function addFeaturePoint(elemIdOrDataname, tooltip) {
+						var elemWhereAdd = innerDoc.querySelector('#' + elemIdOrDataname)
+						  || innerDoc.querySelector('[data-name=' + elemIdOrDataname + ']');
+
+						if (!elemWhereAdd) {
+							console.error('Element with id or data-name' + elemIdOrDataname + ' for featureset ' + tooltip + ' is not found');
+							return;
+						}
+
+						elemWhereAdd.style.position = 'relative';
+
+						var pointTemplate = document.getElementById('feature-point');
+						var featurePoint = pointTemplate.cloneNode(true);
+						featurePoint.removeAttribute('id');
+						featurePoint.classList.remove('hidden');
+						featurePoint.setAttribute('title', tooltip);
+
+						elemWhereAdd.appendChild(featurePoint);
+					}
+
+					function removeFeaturePoint(elemIdOrDataname) {
+
+					}
+
+					function addAllPoints() {
+						for (var i = 0; i < featuresets.length; i++) {
+							addFeaturePoint(featuresets[i].nodeIdOrDataname, featuresets[i].title);
+						}
+					}
+
+					function removeAllPonts() {
+						var points = innerDoc.getElementsByClassName('feature-point');
+						while (points[0]) {
+							points[0].parentNode.removeChild(points[0]);
+						}
+					}
+
+					addAllPoints();
+
+					var symbolSearchField = innerDoc.getElementById('header-toolbar-symbol-search');
+
+					symbolSearchField.addEventListener('blur', function() {
+						removeAllPonts();
+						addAllPoints();
+					}, true);
+				});
+			});
+		};
+
+		window.addEventListener('DOMContentLoaded', initOnReady, false);
+
+	</script>
+	<style>
+		.body {
+			margin: 0px;
+		}
+		.hidden {
+			display: none;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="tv_chart_container"></div>
+	<div class="feature-point hidden" id="feature-point">
+		<svg class="feature-point__image" height="25" viewbox="0 0 32 32" width="25" xmlns="http://www.w3.org/2000/svg">
+			<rect fill="#9013FE" height="32" opacity="0.9" rx="16" width="32"></rect>
+			<path clip-rule="evenodd"
+				d="M15.1111 8.88892H16.8889V10.7404C17.6993 10.8764 18.4477 11.1951 19.0904 11.6528L20.3993 10.3438L21.6564 11.6009L20.3474 12.9099C20.805 13.5524 21.1237 14.3008 21.2596 15.1111H23.1111V16.8889H21.2596C21.1237 17.6992 20.805 18.4476 20.3474 19.0902L21.6565 20.3993L20.3994 21.6564L19.0904 20.3473C18.4477 20.8049 17.6993 21.1237 16.8889 21.2596V23.1111H15.1111V21.2596C14.3008 21.1237 13.5524 20.805 12.9099 20.3474L11.6009 21.6563L10.3438 20.3993L11.6528 19.0904C11.1951 18.4477 10.8764 17.6993 10.7404 16.8889H8.88892V15.1111H10.7404C10.8764 14.3007 11.1951 13.5523 11.6528 12.9097L10.3438 11.6007L11.6009 10.3436L12.9099 11.6526C13.5524 11.1951 14.3008 10.8764 15.1111 10.7404V8.88892ZM16 19.5556C17.9637 19.5556 19.5556 17.9637 19.5556 16C19.5556 14.0363 17.9637 12.4445 16 12.4445C14.0363 12.4445 12.4445 14.0363 12.4445 16C12.4445 17.9637 14.0363 19.5556 16 19.5556Z"
+				fill="white" fill-rule="evenodd"></path>
+		</svg>
+	</div>
+</body>
+
+</html>
