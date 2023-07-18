@@ -2,7 +2,7 @@ Author: Hadi Aladdin ([https://linktr.ee/hadialaddin](https://linktr.ee/hadialad
 
 Social Media: @hadialaddin
 
-# Crypto Genie 🧞
+# Crypto Genie 🧞‍♂️
 
 Suite of advanced automated trading bots and risk management tools to empower Day Traders and enable them to stick to their Trade Plans — Risk:Reward ratios.
 Althoguh designed to automate most of the Risk:Reward aspects of day trading, this suite of tools acts as an assistant instead of auto-pilot.
